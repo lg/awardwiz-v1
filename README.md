@@ -2,7 +2,7 @@
   Search for mileage awards on United
 
 *Current status*:
-  Baseline uploading of actor -- no United scraping yet
+  Baseline uploading of actor and opens United.com when you have a proper proxy -- no scraping yet
 
 *How this works*:
   Really it's quite simple, but unusual. Basically all the code that's run is controllable

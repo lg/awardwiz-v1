@@ -1,5 +1,8 @@
 /* exported ApifyRunner */
 
+const ACTOR_MEMORY_SIZE = 2048
+const ACTOR_TIMEOUT_SEC = 60
+
 class ApifyRunner {
   constructor(config) {
     this.config = config
@@ -45,7 +48,7 @@ class ApifyRunner {
       }
 
       console.log("  Building actor...")
-      await (await fetch(`https://api.apify.com/v2/acts/${actor.id}/builds?token=${this.config.token}&version=0.0&useCache=1&tag=latest&waitForFinish=60`, {method: "POST"})).json()
+      await (await fetch(`https://api.apify.com/v2/acts/${actor.id}/builds?token=${this.config.token}&version=0.0&useCache=1&tag=latest&waitForFinish=${ACTOR_TIMEOUT_SEC}`, {method: "POST"})).json()
 
       console.log("  Ready!")
     } else {
@@ -57,7 +60,10 @@ class ApifyRunner {
 
   async runActor(actor) {
     console.log(`Running actor ${actor.name}...`)
-    const req = await fetch(`https://api.apify.com/v2/acts/${actor.id}/run-sync?token=${this.config.token}`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({})})
+    const body = {
+      proxyUrl: self.config.proxyUrl
+    }
+    const req = await fetch(`https://api.apify.com/v2/acts/${actor.id}/run-sync?token=${this.config.token}&memory=${ACTOR_MEMORY_SIZE}`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)})
     return req.json()
   }
 }

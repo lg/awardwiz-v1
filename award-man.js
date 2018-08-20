@@ -14,4 +14,9 @@ class AwardMan {
     this.united = await this.apify.prepActor("awardman-united", "remote-apify-united.js")
     console.log("Prepped successfully.")
   }
+
+  async test() {
+    await this.apify.runActor(this.united)
+    console.log("Done.")
+  }
 }

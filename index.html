@@ -8,13 +8,16 @@
 Open Console (⌥-⌘-<span id='consoleLetter'>J</span>) to view status<br/><br/>
 
 <label for="apifyToken">Apify token: </label><input type="text" id="apifyToken" value=""/><br/>
-<button onclick="awardman.prep()">prep</button><br/><br/>
+<label for="proxyUrl">Proxy URL: </label><input type="text" id="proxyUrl" value=""/><br/>
+<button onclick="awardman.prep()">prep</button>
+<button onclick="awardman.test()">test</button><br/><br/>
 
 <script>
 /* global AwardMan */
 
 self.config = {
-  apifyToken: localStorage.apifyToken || ""
+  apifyToken: localStorage.apifyToken || "",
+  proxyUrl: localStorage.proxyUrl || ""
 }
 
 self.awardman = new AwardMan(self.config)
