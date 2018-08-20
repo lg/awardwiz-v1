@@ -1,0 +1,64 @@
+{
+  "globals": {
+  },
+
+  "parserOptions": {
+    "ecmaVersion": 8,
+    "sourceType": "script",
+    "ecmaFeatures": {
+      "impliedStrict": true
+    }
+  },
+
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+
+  "extends": "eslint:all",
+  "rules": {
+    // what i like
+    "semi": ["error", "never"],           // everything is per-line now, no need for semicolons
+    "indent": ["error", 2],               // compact plus reliably viewed everywhere
+    "padded-blocks": "off",               // i want code to be compressed
+    "one-var": "off",                     // though it can compress, this is good for keeping things clean
+    "sort-keys": "off",                   // keys should be sorted by what makes most sense
+    "object-property-newline": "off",     // sometimes i want this because of fetch calls
+    "quote-props": ["error", "consistent-as-needed"],               // properties are symbols, not strings
+    "arrow-parens": ["error", "as-needed"],                         // keep clean without brackets everywhere
+    "no-extra-parens": ["error", "all", { "returnAssign": false }], // i want a one-line addeventlistener with arrow function
+    "space-before-function-paren": ["error", "never"],              // looks cleaner this way
+    "array-bracket-newline": ["error", "consistent"],               // allows for x = [{ \n
+    "nonblock-statement-body-position": ["error", "below"],         // im a fan of no curlies when not necessary
+    "curly": ["error", "multi-or-nest"],  // people hate me for it, but i dont see whats wrong with no curlies
+    "wrap-regex": "off",                  // with proper syntax highlighting you dont need them
+
+
+    // can compromise
+    "newline-per-chained-call": "off",    // yes it can be abused, but this is how to keep things simple holistically
+    "max-len": "off",                     // long lines are sometimes cleaner (note, can compromise here)
+    "no-console": "off",                  // ideally this isn't on, but i need a better logger
+    "max-statements": "off"               // too restrictive otherwise
+
+    // old and decided against
+    // "no-unused-vars": ["error", {"vars": "local", "argsIgnorePattern": "^_"}],
+
+    // old and unchecked
+    // "no-warning-comments": "off",
+    // "object-curly-newline": "off",
+    // "no-debugger": "off",
+    // "no-inline-comments": "off",
+    // "no-confusing-arrow": "off",
+    // "multiline-ternary": "off",
+    // "no-ternary": "off",
+    // "no-magic-numbers": ["error", {"ignore": [0, 1, 60000]}],
+    // "arrow-body-style": "off",
+    // "newline-before-return": "off",
+    // "id-length": ["error", {"exceptions": ["_"]}],
+    // "capitalized-comments": "off",
+    // "line-comment-position": "off",
+    // "newline-after-var": "off",
+  },
+
+  "root": true
+}

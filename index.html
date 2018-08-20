@@ -1,0 +1,37 @@
+<head>
+  <meta charset="utf-8" />
+
+  <script src="apify-runner.js"></script>
+  <script src="award-man.js"></script>
+</head>
+
+Open Console (⌥-⌘-<span id='consoleLetter'>J</span>) to view status<br/><br/>
+
+<label for="apifyToken">Apify token: </label><input type="text" id="apifyToken" value=""/><br/>
+<button onclick="awardman.prep()">prep</button><br/><br/>
+
+<script>
+/* global AwardMan */
+
+self.config = {
+  apifyToken: localStorage.apifyToken || ""
+}
+
+self.awardman = new AwardMan(self.config)
+
+for (const configToSave of Object.getOwnPropertyNames(self.config)) {
+  const element = document.getElementById(configToSave)
+  element.value = self.config[configToSave]
+  element.addEventListener("change", () => (self.config[element.id] = element.value))
+  element.addEventListener("change", () => localStorage.setItem(element.id, element.value))
+}
+
+console.logCopy = console.log.bind(console)
+console.log = data => {
+  console.logCopy(`%c${new Date().toISOString().replace(/[TZ]/ug, " ")}%c${data}`, "color: gray", "")
+}
+
+if (/^((?!chrome|android).)*safari/iu.test(navigator.userAgent))
+  document.getElementById("consoleLetter").innerText = "C"
+
+</script>
