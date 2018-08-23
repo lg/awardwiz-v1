@@ -38,7 +38,8 @@
     "newline-per-chained-call": "off",    // yes it can be abused, but this is how to keep things simple holistically
     "max-len": "off",                     // long lines are sometimes cleaner (note, can compromise here)
     "no-console": "off",                  // ideally this isn't on, but i need a better logger
-    "max-statements": "off"               // too restrictive otherwise
+    "max-statements": "off",              // too restrictive otherwise
+    "max-lines-per-function": "off"       // again, overly restrictive
 
     // old and decided against
     // "no-unused-vars": ["error", {"vars": "local", "argsIgnorePattern": "^_"}],

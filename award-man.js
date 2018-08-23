@@ -16,7 +16,13 @@ class AwardMan {
   }
 
   async test() {
-    await this.apify.runActor(this.united)
+    await this.apify.runActor(this.united, {
+      proxyUrl: this.config.proxyUrl,
+      from: "SFO",
+      to: "YOW",
+      date: "2018-08-31"
+    })
+
     console.log("Done.")
   }
 }

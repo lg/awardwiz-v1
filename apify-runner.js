@@ -58,12 +58,9 @@ class ApifyRunner {
     return actor
   }
 
-  async runActor(actor) {
+  async runActor(actor, params) {
     console.log(`Running actor ${actor.name}...`)
-    const body = {
-      proxyUrl: self.config.proxyUrl
-    }
-    const req = await fetch(`https://api.apify.com/v2/acts/${actor.id}/run-sync?token=${this.config.token}&memory=${ACTOR_MEMORY_SIZE}`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)})
+    const req = await fetch(`https://api.apify.com/v2/acts/${actor.id}/run-sync?token=${this.config.token}&memory=${ACTOR_MEMORY_SIZE}`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(params)})
     return req.json()
   }
 }
