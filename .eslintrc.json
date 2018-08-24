@@ -25,13 +25,18 @@
     "sort-keys": "off",                   // keys should be sorted by what makes most sense
     "object-property-newline": "off",     // sometimes i want this because of fetch calls
     "wrap-regex": "off",                  // with proper syntax highlighting you dont need them
+    "curly": "off",                       // people hate me for it, but i dont see whats wrong with no curlies
+    "no-ternary": "off",                  // cmon man, cant we all just get along
+    "multiline-ternary": "off",           // and theres even two rules for this!
+    "no-continue": "off",                 // less nested if statements and such actually makes things cleaner
+    "max-depth": "off",                   // if it's clean this isn't necessary
+    "array-element-newline": "off",       // sometimes you just want all array elements on one line to be cleaner
     "quote-props": ["error", "consistent-as-needed"],               // properties are symbols, not strings
     "arrow-parens": ["error", "as-needed"],                         // keep clean without brackets everywhere
     "no-extra-parens": ["error", "all", { "returnAssign": false }], // i want a one-line addeventlistener with arrow function
     "space-before-function-paren": ["error", "never"],              // looks cleaner this way
     "array-bracket-newline": ["error", "consistent"],               // allows for x = [{ \n
     "nonblock-statement-body-position": ["error", "below"],         // im a fan of no curlies when not necessary
-    "curly": ["error", "multi", "consistent"],                      // people hate me for it, but i dont see whats wrong with no curlies
     "no-multi-spaces": ["error", { "ignoreEOLComments": true }],    // sometimes (like here) i want comments away from the code
 
     // can compromise
@@ -39,7 +44,8 @@
     "max-len": "off",                     // long lines are sometimes cleaner (note, can compromise here)
     "no-console": "off",                  // ideally this isn't on, but i need a better logger
     "max-statements": "off",              // too restrictive otherwise
-    "max-lines-per-function": "off"       // again, overly restrictive
+    "max-lines-per-function": "off",      // again, overly restrictive
+    "no-magic-numbers": ["error", {"ignore": [0]}]                  // needed for array size checking
 
     // old and decided against
     // "no-unused-vars": ["error", {"vars": "local", "argsIgnorePattern": "^_"}],
@@ -50,9 +56,6 @@
     // "no-debugger": "off",
     // "no-inline-comments": "off",
     // "no-confusing-arrow": "off",
-    // "multiline-ternary": "off",
-    // "no-ternary": "off",
-    // "no-magic-numbers": ["error", {"ignore": [0, 1, 60000]}],
     // "arrow-body-style": "off",
     // "newline-before-return": "off",
     // "id-length": ["error", {"exceptions": ["_"]}],

@@ -11,7 +11,7 @@ class AwardMan {
 
   async prep() {
     this.apify = new ApifyRunner({token: this.config.apifyToken})
-    this.united = await this.apify.prepActor("awardman-united", "remote-apify-united.js")
+    this.united = await this.apify.prepActor("awardman-united", "scrapers/united.js")
     console.log("Prepped successfully.")
   }
 
