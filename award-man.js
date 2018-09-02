@@ -1,7 +1,6 @@
-/* global ApifyRunner */
-/* exported AwardMan */
+import ApifyRunner from "./apify-runner.js"
 
-class AwardMan {
+export default class AwardMan {
   constructor(config) {
     this.config = config
 
