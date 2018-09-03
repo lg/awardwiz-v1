@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "Search for mileage awards on United",
   "main": "README.md",
-  "scripts": {
+  "scripts": {},
+  "dependencies": {
+    "apify": "^0.5.51",
+    "puppeteer": "^1.7.0"
   },
-  "dependencies": {},
   "devDependencies": {
     "parcel-bundler": "^1.6.1"
   }
