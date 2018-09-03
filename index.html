@@ -1,5 +1,8 @@
 <head>
   <meta charset="utf-8" />
+
+  <script src="apify-runner.js"></script>
+  <script src="award-man.js"></script>
 </head>
 
 Open Console (⌥-⌘-<span id='consoleLetter'>J</span>) to view status<br/><br/>
@@ -9,9 +12,8 @@ Open Console (⌥-⌘-<span id='consoleLetter'>J</span>) to view status<br/><br/
 <button onclick="awardman.prep()">prep</button>
 <button onclick="awardman.test()">test</button><br/><br/>
 
-<script type="module">
-
-import AwardMan from "./award-man.js"
+<script>
+/* global AwardMan */
 
 self.config = {
   apifyToken: localStorage.apifyToken || "",

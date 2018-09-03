@@ -4,7 +4,7 @@
 
   "parserOptions": {
     "ecmaVersion": 8,
-    "sourceType": "module",
+    "sourceType": "script",
     "ecmaFeatures": {
       "impliedStrict": true
     }
