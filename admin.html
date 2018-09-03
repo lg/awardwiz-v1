@@ -1,16 +1,20 @@
 <head>
   <meta charset="utf-8" />
 
+  <script src="https://unpkg.com/ag-grid/dist/ag-grid.min.js"></script>
+
   <script src="apify-runner.js"></script>
   <script src="award-man.js"></script>
 </head>
 
-Open Console (⌥-⌘-<span id='consoleLetter'>J</span>) to view status<br/><br/>
+Open Console (⌥-⌘-C) to view status<br/><br/>
 
 <label for="apifyToken">Apify token: </label><input type="text" id="apifyToken" value=""/><br/>
 <label for="proxyUrl">Proxy URL: </label><input type="text" id="proxyUrl" value=""/><br/>
 <button onclick="awardman.prep()">prep</button>
 <button onclick="awardman.test()">test</button><br/><br/>
+
+<div id="resultsGrid" style="height:305px; width:850px; padding-bottom: 5px" class="ag-theme-balham"></div>
 
 <script>
 /* global AwardMan */
@@ -21,6 +25,7 @@ self.config = {
 }
 
 self.awardman = new AwardMan(self.config)
+self.awardman.configureGrid(document.querySelector("#resultsGrid"))
 
 for (const configToSave of Object.getOwnPropertyNames(self.config)) {
   const element = document.getElementById(configToSave)
@@ -33,8 +38,5 @@ console.logCopy = console.log.bind(console)
 console.log = data => {
   console.logCopy(`%c${new Date().toISOString().replace(/[TZ]/ug, " ")}%c${data}`, "color: gray", "")
 }
-
-if (/^((?!chrome|android).)*safari/iu.test(navigator.userAgent))
-  document.getElementById("consoleLetter").innerText = "C"
 
 </script>

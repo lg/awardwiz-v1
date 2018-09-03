@@ -3,7 +3,7 @@
 
 const Apify = require("apify")
 
-Apify.main(async() => {
+const apifyMain = async() => {
   console.log("Hello world from actor!")
   const input = await Apify.getValue("INPUT")
 
@@ -24,6 +24,8 @@ Apify.main(async() => {
   console.log("Searching for flights...")
 
   /* eslint-disable no-magic-numbers */
+  if (typeof input.maxConnections === "undefined" || input.maxConnections === null)
+    input.maxConnections = 0
   let maxConnectionsCode = 7
   if (input.maxConnections === 0)
     maxConnectionsCode = 1
@@ -42,6 +44,58 @@ Apify.main(async() => {
 
   console.log("Done.")
 
-  const output = {raw}
+  const output = {results: standardizeResults(raw.data.Trips[0], input.maxConnections)}   // eslint-disable-line no-use-before-define
   await Apify.setValue("OUTPUT", output)
-})
+}
+
+const standardizeResults = (unitedTrip, filterMaxConnections) => {
+  const results = []
+  for (const flight of unitedTrip.Flights) {
+    const result = {
+      fromDateTime: flight.DepartDateTime,
+      toDateTime: flight.LastDestinationDateTime,
+      fromAirport: flight.Origin,
+      toAirport: flight.LastDestination.Code,
+      flights: `${flight.OperatingCarrier}${flight.FlightNumber}`,
+      costs: {
+        economy: {miles: null, cash: null},
+        business: {miles: null, cash: null},
+        first: {miles: null, cash: null}
+      }
+    }
+
+    // United's API has a way of returning flights with more connections than asked
+    if (flight.StopsandConnections > filterMaxConnections)
+      continue
+
+    // Append all connections to flight list
+    if (flight.Connections)
+      for (const connection of flight.Connections)
+        result.flights += `,${connection.OperatingCarrier}${connection.FlightNumber}`
+
+    // Convert united format to standardized miles and cash formats
+    for (const product of flight.Products) {
+      if (product.Prices.length === 0)
+        continue
+
+      const milesRequired = product.Prices[0].Amount
+      const cashRequired = product.TaxAndFees ? product.TaxAndFees.Amount : 0
+
+      for (const cabin of ["Economy", "Business", "First"]) {
+        if (product.ProductTypeDescription.startsWith(cabin)) {
+          const cabinLower = cabin.toLowerCase()
+          if (!result.costs[cabinLower].miles || milesRequired < result.costs[cabinLower].miles) {
+            result.costs[cabinLower].miles = milesRequired
+            result.costs[cabinLower].cash = cashRequired
+          }
+        }
+      }
+    }
+
+    results.push(result)
+  }
+
+  return results
+}
+
+Apify.main(apifyMain)

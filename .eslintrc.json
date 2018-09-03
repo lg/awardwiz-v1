@@ -45,7 +45,7 @@
     "no-console": "off",                  // ideally this isn't on, but i need a better logger
     "max-statements": "off",              // too restrictive otherwise
     "max-lines-per-function": "off",      // again, overly restrictive
-    "no-magic-numbers": ["error", {"ignore": [0]}]                  // needed for array size checking
+    "no-magic-numbers": "off"             // needed for sanity
 
     // old and decided against
     // "no-unused-vars": ["error", {"vars": "local", "argsIgnorePattern": "^_"}],
