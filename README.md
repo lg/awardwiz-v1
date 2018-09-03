@@ -1,6 +1,8 @@
 **AwardMan**
   Search for mileage awards on United
 
+![Screenshot](/lg/award-man/master/screenshot.png?raw=true)
+
 *Current status*:
   Actor uploading is automatic now, runs query for SFO-YOW, returns raw results. Needs to integrate parsing and cleanup of results into main flow.
 
