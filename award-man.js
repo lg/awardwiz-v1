@@ -20,16 +20,13 @@ class AwardMan {
   }
 
   async test() {
-    const checkDate = new Date()
-    checkDate.setDate(checkDate.getDate() + 90)       // eslint-disable-line no-magic-numbers
-
     this.grid.api.showLoadingOverlay()
     const raw = await this.apify.runActor(this.united, {
       proxyUrl: this.config.proxyUrl,
-      from: "EWR",
-      to: "SFO",
-      date: checkDate.toISOString().substr(0, 10),    // eslint-disable-line no-magic-numbers
-      maxConnections: 0
+      from: this.config.origin,
+      to: this.config.destination,
+      date: this.config.date,
+      maxConnections: 2
     })
     this.grid.api.hideOverlay()
 
@@ -46,7 +43,7 @@ class AwardMan {
 
       const cashFormatter = new Intl.NumberFormat("en-US", {style: "currency", currency: "USD", minimumFractionDigits: 2})
       const milesFormatter = new Intl.NumberFormat("en-US")
-      return `${milesFormatter.format(cost.miles / 1000)}k + ${cashFormatter.format(cost.cash)}`    // eslint-disable-line no-magic-numbers
+      return `${milesFormatter.format(cost.miles / 1000)}k + ${cashFormatter.format(cost.cash)}`
     }
 
     const timeOnlyFormatter = params => {

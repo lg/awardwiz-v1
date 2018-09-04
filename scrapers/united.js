@@ -22,7 +22,6 @@ const apifyMain = async() => {
 
   console.log("Searching for flights...")
 
-  /* eslint-disable no-magic-numbers */
   if (typeof input.maxConnections === "undefined" || input.maxConnections === null)
     input.maxConnections = 0
   let maxConnectionsCode = 7
@@ -30,7 +29,6 @@ const apifyMain = async() => {
     maxConnectionsCode = 1
   else if (input.maxConnections === 1)
     maxConnectionsCode = 3
-  /* eslint-enable no-magic-numbers */
 
   await page.goto(`https://www.united.com/ual/en/us/flight-search/book-a-flight/results/awd?f=${input.from}&t=${input.to}&d=${input.date}&tt=1&at=1&sc=${maxConnectionsCode}&px=1&taxng=1&idx=1`)
 
