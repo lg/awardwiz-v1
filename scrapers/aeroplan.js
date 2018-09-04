@@ -1,8 +1,78 @@
-/* eslint-disable */
+/* This file is uploaded by AwardMan to Apify and run as an Actor */
+/* eslint-env node, module */
 
-const puppeteer = require('puppeteer');
+const Apify = require("apify")
 
-const standardizeResults = (aeroplanTrip) => {
+const apifyMain = async() => {
+  const input = await Apify.getValue("INPUT")
+
+  console.log("Launching Puppeteer for Aeroplan...")
+  const browser = await Apify.launchPuppeteer({
+    proxyUrl: input.proxyUrl || null
+  })
+
+  if (!input.from || !input.to || !input.date || !input.aeroplanUsername || !input.aeroplanPassword) {
+    console.error("Some parameters missing for call. from, to, date, aeroplanUsername, aeroplanPassword are required.")
+    return
+  }
+
+  const page = await browser.newPage()
+
+  const waitAndClick = selector => {
+    return page.waitForSelector(selector).then(() => {
+      return page.click(selector)
+    })
+  }
+
+  await page.goto("https://www.aeroplan.com")
+
+  // Language selection
+  await waitAndClick(".btn-primary")
+  await page.waitForSelector(".header-login-btn")
+
+  // Login
+  await waitAndClick(".header-login-btn")
+  await page.type(".header-login-form-inner-wrapper #aeroplanNumber", input.aeroplanUsername)
+  await page.type(".header-login-form-inner-wrapper input[type=password]", input.aeroplanPassword)
+  await page.click(".header-login-form-inner-wrapper .form-login-submit")
+  await page.waitForSelector(".header-logout-btn")
+
+  // Search (and first wait for the default airport to get populated)
+  await page.goto("https://www.aeroplan.com/en/use-your-miles/travel.html", {waitUntil: "networkidle0"})
+
+  // Search - One-way
+  await waitAndClick("div[data-automation=round-trip-trip-type]")
+  await waitAndClick("div[data-value=One-way]")
+
+  // Search - Origin
+  await waitAndClick("div[data-automation=one-way-from-location]")
+  await page.keyboard.type(input.from)
+  await waitAndClick("div[data-automation=one-way-from-location] div[data-selectable]")
+
+  // Search - Destination
+  await waitAndClick("div[data-automation=one-way-to-location]")
+  await page.keyboard.type(input.to)
+  await waitAndClick("div[data-automation=one-way-to-location] div[data-selectable]")
+
+  // Search - Date (mm/dd/yyyy)
+  const aeroplanDate = `${input.date.substr(5, 2)}/${input.date.substr(8, 2)}/${input.date.substr(0, 4)}`
+  await page.type("div[data-automation=one-way-departure-date] #l1Oneway", aeroplanDate)
+
+  // Start search and wait for results
+  const clickNav = page.waitForNavigation({waitUntil: "networkidle0"})
+  await page.click("div[data-automation=one-way-submit] button")
+  const response = await page.waitForResponse("https://www.aeroplan.com/adr/Results_Ajax.jsp?searchType=oneway&forceIkk=false")
+  const raw = await response.json()
+  await clickNav
+  await browser.close()
+
+  console.log("Done.")
+
+  const output = {results: standardizeResults(raw)}   // eslint-disable-line no-use-before-define
+  await Apify.setValue("OUTPUT", output)
+}
+
+const standardizeResults = aeroplanTrip => {
   // Aeroplan has two modes (basically Saver and Standard from United)
   const classicFlights = aeroplanTrip.NormalResults.product[0].tripComponent[0].ODoption
   const classicPlusFlights = aeroplanTrip.NormalResults.product[1].tripComponent[0].ODoption
@@ -45,8 +115,8 @@ const standardizeResults = (aeroplanTrip) => {
       cabin = "business"
 
     // Aeroplan has mileage as 0 if you need to look it up on the chart
-    let chart = {economy: aeroplanTrip.RewardQuoteStar.X, business: aeroplanTrip.RewardQuoteStar.I, first: aeroplanTrip.RewardQuoteStar.O}
-    let miles = flight.mileage || chart[cabin]
+    const chart = {economy: aeroplanTrip.RewardQuoteStar.X, business: aeroplanTrip.RewardQuoteStar.I, first: aeroplanTrip.RewardQuoteStar.O}
+    const miles = flight.mileage || chart[cabin]
 
     // There could already be a mileage here based on Classic vs ClassicPlus
     if (result.costs[cabin].miles) {
@@ -55,7 +125,7 @@ const standardizeResults = (aeroplanTrip) => {
       result.costs[cabin].miles = miles
     }
 
-    // TODO: Aeroplan requires you hit up individual endpoints for the cash amount
+    // Aeroplan requires you hit up individual endpoints for the cash amount. Skip for now.
     result.costs[cabin].cash = 99.99
 
     if (!foundPrevResult)
@@ -65,53 +135,4 @@ const standardizeResults = (aeroplanTrip) => {
   return results
 }
 
-(async () => {
-  const browser = await puppeteer.launch({headless: false, devtools: true});
-  const page = await browser.newPage();
-
-  const waitAndClick = selector => {return page.waitForSelector(selector).then(() => {return page.click(selector)})}
-
-  await page.goto('https://www.aeroplan.com')
-
-  // Language selection
-  await waitAndClick(".btn-primary")
-  await page.waitForSelector(".header-login-btn")
-
-  // Login
-  await waitAndClick(".header-login-btn")
-  await page.type(".header-login-form-inner-wrapper #aeroplanNumber", "789519840")
-  await page.type(".header-login-form-inner-wrapper input[type=password]", "jjARUYUB86")
-  await page.click(".header-login-form-inner-wrapper .form-login-submit")
-  await page.waitForSelector(".header-logout-btn")
-
-  // Search (and first wait for the default airport to get populated)
-  await page.goto("https://www.aeroplan.com/en/use-your-miles/travel.html", {waitUntil: "networkidle0"})
-
-  // Search - One-way
-  await waitAndClick("div[data-automation=round-trip-trip-type]")
-  await waitAndClick("div[data-value=One-way]")
-
-  // Search - Origin
-  await waitAndClick("div[data-automation=one-way-from-location]")
-  await page.keyboard.type("SFO")
-  await waitAndClick("div[data-automation=one-way-from-location] div[data-selectable]")
-
-  // Search - Destination
-  await waitAndClick("div[data-automation=one-way-to-location]")
-  await page.keyboard.type("YOW")
-  await waitAndClick("div[data-automation=one-way-to-location] div[data-selectable]")
-
-  // Search - Date (mm/dd/yyyy)
-  await page.type("div[data-automation=one-way-departure-date] #l1Oneway", "12/01/2018")
-
-  // Start search and wait for results
-  const clickNav = page.waitForNavigation({waitUntil: "networkidle0"})
-  await page.click("div[data-automation=one-way-submit] button")
-  const response = await page.waitForResponse("https://www.aeroplan.com/adr/Results_Ajax.jsp?searchType=oneway&forceIkk=false")
-  const raw = await response.json()
-  await clickNav
-  await browser.close()
-
-  const results = standardizeResults(raw)
-  console.log(results)
-})()
+Apify.main(apifyMain)

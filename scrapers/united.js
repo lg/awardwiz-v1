@@ -4,10 +4,9 @@
 const Apify = require("apify")
 
 const apifyMain = async() => {
-  console.log("Hello world from actor!")
   const input = await Apify.getValue("INPUT")
 
-  console.log("Launching Puppeteer...")
+  console.log("Launching Puppeteer for United...")
   const browser = await Apify.launchPuppeteer({
     proxyUrl: input.proxyUrl || null
   })

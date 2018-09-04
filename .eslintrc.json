@@ -38,6 +38,7 @@
     "array-bracket-newline": ["error", "consistent"],               // allows for x = [{ \n
     "nonblock-statement-body-position": ["error", "below"],         // im a fan of no curlies when not necessary
     "no-multi-spaces": ["error", { "ignoreEOLComments": true }],    // sometimes (like here) i want comments away from the code
+    "arrow-body-style": "off",                                      // unnecessary rule, not clear what it's solving for
 
     // can compromise
     "newline-per-chained-call": "off",    // yes it can be abused, but this is how to keep things simple holistically
@@ -56,7 +57,7 @@
     // "no-debugger": "off",
     // "no-inline-comments": "off",
     // "no-confusing-arrow": "off",
-    // "arrow-body-style": "off",
+
     // "newline-before-return": "off",
     // "id-length": ["error", {"exceptions": ["_"]}],
     // "capitalized-comments": "off",
