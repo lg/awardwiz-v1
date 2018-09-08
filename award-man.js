@@ -1,9 +1,8 @@
-/* global ApifyRunner, agGrid */
-/* exported AwardMan */
+import ApifyRunner from "./apify-runner.js"
 
 const PAGINATION_SIZE = 100
 
-class AwardMan {
+export default class AwardMan {
   constructor(config) {
     this.config = config
 
