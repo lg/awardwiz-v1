@@ -1,9 +1,7 @@
-/* exported ApifyRunner */
-
 const ACTOR_MEMORY_SIZE = 2048
 const ACTOR_TIMEOUT_SEC = 60
 
-class ApifyRunner {
+export default class ApifyRunner {
   constructor(config) {
     this.config = config
   }

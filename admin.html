@@ -2,9 +2,6 @@
   <meta charset="utf-8" />
 
   <script src="https://unpkg.com/ag-grid/dist/ag-grid.min.js"></script>
-
-  <script src="apify-runner.js"></script>
-  <script src="award-man.js"></script>
 </head>
 
 Open Console (⌥-⌘-C) to view status<br/><br/>
@@ -24,8 +21,9 @@ Open Console (⌥-⌘-C) to view status<br/><br/>
 
 <div id="resultsGrid" style="height:305px; width:850px; padding-bottom: 5px" class="ag-theme-balham"></div>
 
-<script>
-/* global AwardMan */
+<script type="module">
+
+import AwardMan from "./award-man.js"
 
 self.config = {
   apifyToken: localStorage.apifyToken || "",
