@@ -1,0 +1,36 @@
+<head>
+  <meta charset="utf-8" />
+  <script src="https://apis.google.com/js/platform.js?onload=gInit" async defer></script>
+</head>
+
+Sign in to your Google Cloud account:
+<div id="googleSignIn" style="height: 20px"></div><div id="googleSignInOut" style="height: 20px" hidden><button>Sign out</button></div>
+<br/>
+
+<script>
+  function gInit() {
+    gapi.load("auth2", () => {
+      gapi.auth2.init({
+        client_id: "224829437062-cfk51jtehv7mbeq5i60uf82n11s343rr.apps.googleusercontent.com",
+        scope: "https://www.googleapis.com/auth/cloudfunctions",
+        fetch_basic_profile: false
+      })
+      gapi.signin2.render("googleSignIn", {
+        theme: "dark",
+        prompt: "select_account",
+        onFailure: (error) => console.error(error),
+        onSuccess: (user) => {
+          document.querySelector("#googleSignIn").hidden = true
+          document.querySelector("#googleSignInOut").hidden = false
+          document.querySelector("#googleSignInOut button").onclick = () => {
+            gapi.auth2.getAuthInstance().signOut().then(function () {
+              document.querySelector("#googleSignIn").hidden = false
+              document.querySelector("#googleSignInOut").hidden = true
+            })
+          }
+        }
+      })
+    })
+  }
+</script>
+  
