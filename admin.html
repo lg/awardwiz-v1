@@ -24,26 +24,7 @@ Open Console (⌥-⌘-C) to view status<br/><br/>
 <script type="module">
 
 import AwardMan from "./award-man.js"
-
-self.config = {
-  apifyToken: localStorage.apifyToken || "",
-  proxyUrl: localStorage.proxyUrl || "",
-  aeroplanUsername: localStorage.aeroplanUsername || "",
-  aeroplanPassword: localStorage.aeroplanPassword || "",
-  origin: localStorage.origin || "",
-  destination: localStorage.destination || "",
-  date: localStorage.date || ""
-}
-
-self.awardman = new AwardMan(self.config)
-self.awardman.configureGrid(document.querySelector("#resultsGrid"))
-
-for (const configToSave of Object.getOwnPropertyNames(self.config)) {
-  const element = document.getElementById(configToSave)
-  element.value = self.config[configToSave]
-  element.addEventListener("change", () => (self.config[element.id] = element.value))
-  element.addEventListener("change", () => localStorage.setItem(element.id, element.value))
-}
+self.awardman = new AwardMan()
 
 console.logCopy = console.log.bind(console)
 console.log = data => {
