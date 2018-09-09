@@ -1,29 +1,38 @@
 <head>
   <meta charset="utf-8" />
+
   <script src="https://apis.google.com/js/platform.js?onload=gInit" async defer></script>
 </head>
 
 Sign in to your Google Cloud account:
 <div id="googleSignIn" style="height: 20px"></div><div id="googleSignInOut" style="height: 20px" hidden><button>Sign out</button></div>
 <br/>
+<button onclick="window.test()">test</button>
 
-<script>
-  function gInit() {
-    gapi.load("auth2", () => {
-      gapi.auth2.init({
+<script type="module">
+  const CLOUD_FUNCTIONS_LOCATION = "us-central1"
+
+  /* global gapi */
+  window.gInit = () => {
+    gapi.load("client:auth2", async () => {
+      /* eslint-disable camelcase */
+      await gapi.client.init({
+        discoveryDocs: ["https://cloudfunctions.googleapis.com/$discovery/rest?version=v1"],
         client_id: "224829437062-cfk51jtehv7mbeq5i60uf82n11s343rr.apps.googleusercontent.com",
-        scope: "https://www.googleapis.com/auth/cloudfunctions",
-        fetch_basic_profile: false
+        scope: "https://www.googleapis.com/auth/cloudfunctions https://www.googleapis.com/auth/cloud-platform"
       })
+      await gapi.client.load({name: "cloudfunctions", version: "v1"})
+      /* eslint-enable camelcase */
+
       gapi.signin2.render("googleSignIn", {
         theme: "dark",
         prompt: "select_account",
-        onFailure: (error) => console.error(error),
-        onSuccess: (user) => {
+        onFailure: error => console.error(error),
+        onSuccess: () => {
           document.querySelector("#googleSignIn").hidden = true
           document.querySelector("#googleSignInOut").hidden = false
           document.querySelector("#googleSignInOut button").onclick = () => {
-            gapi.auth2.getAuthInstance().signOut().then(function () {
+            gapi.auth2.getAuthInstance().signOut().then(() => {
               document.querySelector("#googleSignIn").hidden = false
               document.querySelector("#googleSignInOut").hidden = true
             })
@@ -31,6 +40,18 @@ Sign in to your Google Cloud account:
         }
       })
     })
+  }
+
+  window.test = async() => {
+    console.log("doing the thing")
+
+    //const c = await gapi.client.cloudfunctions.projects.locations.list({name: "projects/award-man"})
+    const c = await gapi.client.cloudfunctions.projects.locations.functions.list({parent: `projects/award-man/locations/${CLOUD_FUNCTIONS_LOCATION}`})
+    debugger
+    
+    // The following doesn't work -- aparently you can't do fancy RPC-style stuff if POST is needed
+    //const c = await gapi.client.cloudfunctions.projects.locations.functions.create({location: `"projects/award-man/locations/"${CLOUD_FUNCTIONS_LOCATION}`, function:{name: "lgisawesome"}})
+    debugger
   }
 </script>
   

@@ -24,7 +24,7 @@ Open Console (⌥-⌘-C) to view status<br/><br/>
 <script type="module">
 
 import AwardMan from "./award-man.js"
-self.awardman = new AwardMan()
+window.awardman = new AwardMan()
 
 console.logCopy = console.log.bind(console)
 console.log = data => {

@@ -28,6 +28,11 @@ export default class AwardMan {
       element.value = config[configToSave]
       element.addEventListener("change", () => (config[element.id] = element.value))
       element.addEventListener("change", () => localStorage.setItem(element.id, element.value))
+      if (element) {
+        element.value = config[configToSave]
+        element.addEventListener("change", () => (config[element.id] = element.value))
+        element.addEventListener("change", () => localStorage.setItem(element.id, element.value))
+      }
     }
 
     return config

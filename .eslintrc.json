@@ -1,7 +1,6 @@
 {
   "globals": {
   },
-
   "parserOptions": {
     "ecmaVersion": 8,
     "sourceType": "module",
@@ -9,7 +8,6 @@
       "impliedStrict": true
     }
   },
-
   "env": {
     "browser": true,
     "es6": true
@@ -17,7 +15,6 @@
   "plugins": [
     "html"
   ],
-
   "extends": "eslint:all",
   "rules": {
     // what i like
@@ -34,6 +31,10 @@
     "no-continue": "off",                 // less nested if statements and such actually makes things cleaner
     "max-depth": "off",                   // if it's clean this isn't necessary
     "array-element-newline": "off",       // sometimes you just want all array elements on one line to be cleaner
+    "require-jsdoc": "off",               // ok lets all just calm down now, no way.
+    "capitalized-comments": "off",        // these three are so i can comment out code to debug
+    "spaced-comment": "off",              // these three are so i can comment out code to debug
+    "multiline-comment-style": "off",     // these three are so i can comment out code to debug
     "quote-props": ["error", "consistent-as-needed"],               // properties are symbols, not strings
     "arrow-parens": ["error", "as-needed"],                         // keep clean without brackets everywhere
     "no-extra-parens": ["error", "all", { "returnAssign": false }], // i want a one-line addeventlistener with arrow function
