@@ -2,6 +2,7 @@
   <meta charset="utf-8" />
 
   <script src="https://apis.google.com/js/platform.js?onload=gInit" async defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js" async defer></script>
 </head>
 
 Sign in to your Google Cloud account:
@@ -10,14 +11,17 @@ Sign in to your Google Cloud account:
 <button onclick="window.test()">test</button>
 
 <script type="module">
+  const CLOUD_FUNCTION_NAME = "award-man"
   const CLOUD_FUNCTIONS_LOCATION = "us-central1"
+  const SCRAPERS = ["united", "aeroplan"]
+  const SCRAPER_DIR = "scrapers"
 
   /* global gapi */
   window.gInit = () => {
     gapi.load("client:auth2", async () => {
       /* eslint-disable camelcase */
       await gapi.client.init({
-        discoveryDocs: ["https://cloudfunctions.googleapis.com/$discovery/rest?version=v1"],
+        discoveryDocs: ["https://cloudfunctions.googleapis.com/$discovery/rest?version=v1", "https://www.googleapis.com/discovery/v1/apis/storage/v1/rest"],
         client_id: "224829437062-cfk51jtehv7mbeq5i60uf82n11s343rr.apps.googleusercontent.com",
         scope: "https://www.googleapis.com/auth/cloudfunctions https://www.googleapis.com/auth/cloud-platform"
       })
@@ -43,15 +47,33 @@ Sign in to your Google Cloud account:
   }
 
   window.test = async() => {
-    console.log("doing the thing")
+    console.log("Prepping package...")
+    let zip = new JSZip()
+    for (const scraperName of SCRAPERS) {
+      const scraperCode = await (await fetch(`${SCRAPER_DIR}/${scraperName}.js`)).text()
+      zip.file(`${scraperName}.js`, scraperCode)
+    }
+    const zipFile = await zip.generateAsync({type:"blob"})
 
-    //const c = await gapi.client.cloudfunctions.projects.locations.list({name: "projects/award-man"})
-    const c = await gapi.client.cloudfunctions.projects.locations.functions.list({parent: `projects/award-man/locations/${CLOUD_FUNCTIONS_LOCATION}`})
-    debugger
+    console.log("Getting file upload url...")
+    const location = `projects/${CLOUD_FUNCTION_NAME}/locations/${CLOUD_FUNCTIONS_LOCATION}`
+    const resp = await gapi.client.cloudfunctions.projects.locations.functions.generateUploadUrl({parent: location})
     
-    // The following doesn't work -- aparently you can't do fancy RPC-style stuff if POST is needed
-    //const c = await gapi.client.cloudfunctions.projects.locations.functions.create({location: `"projects/award-man/locations/"${CLOUD_FUNCTIONS_LOCATION}`, function:{name: "lgisawesome"}})
-    debugger
+    // WARNING: ABSOLUTELY NASTY HACK SINCE GOOGLE FUNCTIONS HAS A CORS BUG
+    // see https://issuetracker.google.com/issues/114650724
+    let uploadUrl = resp.result.uploadUrl
+    uploadUrl = uploadUrl.replace("https://","https://cors-anywhere.herokuapp.com/")
+
+    console.log("Uploading scrapers...")
+    const resp2 = await fetch(uploadUrl, {
+      method: "PUT", 
+      headers: {
+        "content-type": "application/zip", 
+        "x-goog-content-length-range": "0,104857600"
+      },
+      body: zipFile
+    })
+    const respText = await resp2.text()
   }
 </script>
   
