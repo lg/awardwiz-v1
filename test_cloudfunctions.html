@@ -3,6 +3,7 @@
 
   <script src="https://apis.google.com/js/platform.js?onload=gInit" async defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js" async defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.0/spark-md5.min.js" async defer></script>
 </head>
 
 Sign in to your Google Cloud account:
@@ -71,9 +72,25 @@ Sign in to your Google Cloud account:
       zip.file(`${scraperName}.js`, scraperCode, {date: new Date("December 25, 2007 00:00:01")})  // date to make hashing consistent
     }
     const zipFile = await zip.generateAsync({type:"arraybuffer"})
+    const zipFileHash = SparkMD5.ArrayBuffer.hash(zipFile).substr(0, 5)
+
+    console.log("Getting if GCF has up to date scrapers...")
+    const location = `projects/${CLOUD_FUNCTION_NAME}/locations/${CLOUD_FUNCTIONS_LOCATION}`
+    const functionName = `${location}/functions/${CLOUD_FUNCTION_NAME}`
+    let functionOnlyNeedsPatch = false
+    try {
+      const existingFunc = await gapi.client.cloudfunctions.projects.locations.functions.get({name: functionName})
+      if (existingFunc.result.description === zipFileHash) {
+        console.log("Scrapers are up to date!")
+        return
+      }
+      functionOnlyNeedsPatch = true
+    } catch (e) {
+      if (e.status !== 404)
+        throw e
+    }
 
     console.log("Getting file upload url...")
-    const location = `projects/${CLOUD_FUNCTION_NAME}/locations/${CLOUD_FUNCTIONS_LOCATION}`
     const uploadUrlResp = await gapi.client.cloudfunctions.projects.locations.functions.generateUploadUrl({parent: location})
     const uploadUrl = uploadUrlResp.result.uploadUrl
 
@@ -83,25 +100,26 @@ Sign in to your Google Cloud account:
     const noCorsUploadUrl = uploadUrl.replace("https://","https://cors-anywhere.herokuapp.com/")
     await (await fetch(noCorsUploadUrl, {method: "PUT", headers: {"content-type": "application/zip", "x-goog-content-length-range": "0,104857600"}, body: zipFile})).text()
 
-    console.log("Getting file download url...")
-    const functionName = `${location}/functions/${CLOUD_FUNCTION_NAME}`
-
-    console.log("Creating function...")
-    const createOperationResp = await gapi.client.cloudfunctions.projects.locations.functions.create({
-      location: location, 
-      resource: {
-        name: functionName,
-        sourceUploadUrl: uploadUrl,
-        "httpsTrigger": {},
-        "runtime": "nodejs8",
-        "availableMemoryMb": 2048,
-        "entryPoint": "gcfEntry"
-      }
-    })
-    const createOperationName = createOperationResp.result.name
+    console.log(`${functionOnlyNeedsPatch ? "Updating" : "Creating"} function...`)
+    const funcParams = {
+      name: functionName,
+      description: zipFileHash,
+      sourceUploadUrl: uploadUrl,
+      "httpsTrigger": {},
+      "runtime": "nodejs8",
+      "availableMemoryMb": 2048,
+      "entryPoint": "gcfEntry"
+    }
+    let operationResp = null
+    if (functionOnlyNeedsPatch) {
+      operationResp = await gapi.client.cloudfunctions.projects.locations.functions.patch({name: functionName, updateMask: Object.keys(funcParams).join(","), resource: funcParams})
+    } else {
+      operationResp = await gapi.client.cloudfunctions.projects.locations.functions.create({location: location, resource: funcParams})
+    }
+    const operationName = operationResp.result.name
 
     console.log("Waiting for function to be ready...")
-    await waitForOperation(createOperationName, 5000, 6)
+    await waitForOperation(operationName, 5000, 12)
     
     console.log("Ready!")
   }
