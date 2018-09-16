@@ -50,7 +50,11 @@
     "no-console": "off",                  // ideally this isn't on, but i need a better logger
     "max-statements": "off",              // too restrictive otherwise
     "max-lines-per-function": "off",      // again, overly restrictive
-    "no-magic-numbers": "off"             // needed for sanity
+    "no-magic-numbers": "off",            // needed for sanity
+    "class-methods-use-this": "off",      // can't be in the middle of writing code with this on
+    "no-inline-comments": "off",          // this is fine
+    "line-comment-position": "off"        // sometimes you just need to describe whats going on
+
 
     // old and decided against
     // "no-unused-vars": ["error", {"vars": "local", "argsIgnorePattern": "^_"}],
