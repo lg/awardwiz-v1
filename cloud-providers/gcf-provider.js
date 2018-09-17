@@ -16,7 +16,7 @@
 export default class GCFProvider {
   constructor(config) {
     this.config = config
-    // files (array): list of files (as strings) minus the path and extension, including index
+    // files (array): list of files (as strings) minus the path to upload, including index.js and package.json
     // filesDir (string): path relative to the main html file where the package to upload is
     // projectName (string): the main project name the user should have already created
     // functionName (string): the function to create (or update)
@@ -78,8 +78,8 @@ export default class GCFProvider {
     const zip = new JSZip()
     let roughHash = 0     // doing this because we want the same hash regardless of upload order
     await Promise.all(this.config.files.map(async file => {
-      const scraperCode = await fetch(`${this.config.filesDir}/${file}.js`).then(result => result.text())
-      zip.file(`${file}.js`, scraperCode)
+      const scraperCode = await fetch(`${this.config.filesDir}/${file}`).then(result => result.text())
+      zip.file(file, scraperCode)
       roughHash += parseInt(SparkMD5.hash(scraperCode).substr(0, 5), 16)
     }))
     const zipFile = await zip.generateAsync({type: "blob"})
@@ -130,8 +130,21 @@ export default class GCFProvider {
     const operationName = operationResp.result.name
 
     console.log("Waiting for function to be ready...")
-    await this.waitForOperation(operationName, 5000, 12)
+    await this.waitForOperation(operationName, 5000, 12 * 5)    // 5 mins timeout
 
     console.log("Ready!")
+  }
+
+  async test() {
+    console.log("Calling...")
+    const location = `projects/${this.config.projectName}/locations/${this.config.projectLocation}`
+    const functionName = `${location}/functions/${this.config.functionName}`
+
+    const data = {command: "runScraper", scraper: "united", params: {}}
+    const response = await gapi.client.cloudfunctions.projects.locations.functions.call({name: functionName, resource: {data: JSON.stringify(data)}})
+    const out = JSON.parse(response.body)
+
+    console.dir(out)
+    console.log("Done!")
   }
 }

@@ -9,18 +9,18 @@
 Sign in to your Google Cloud account:
 <div id="googleSignIn" style="height: 20px"></div><div id="googleSignOut" style="height: 20px" hidden><button>Sign out</button></div>
 <br/>
+<button onclick="window.prep()">prep</button>
 <button onclick="window.test()">test</button>
 
 <script type="module">
   import GCFProvider from "./cloud-providers/gcf-provider.js"
   
-  const SCRAPERS = ["united", "aeroplan"]
   const SCRAPER_DIR = "scrapers"
   const CLOUD_FUNCTION_NAME = "award-man"
   const CLOUD_FUNCTIONS_LOCATION = "us-central1"
 
   const gcf = new GCFProvider({
-    files: SCRAPERS.concat("index"),
+    files: ["united.js", "aeroplan.js", "index.js", "package.json"],
     filesDir: SCRAPER_DIR,
     projectName: CLOUD_FUNCTION_NAME,
     functionName: CLOUD_FUNCTION_NAME,
@@ -31,8 +31,11 @@ Sign in to your Google Cloud account:
   })
 
   window.gInit = () => gcf.googleAuthInit()
-  window.test = async() => {
+  window.prep = async() => {
     await gcf.prep()
+  }
+  window.test = async() => {
+    await gcf.test()
   }
 </script>
   

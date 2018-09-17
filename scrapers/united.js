@@ -1,9 +1,21 @@
-/* This file is uploaded by AwardMan to Apify and run as an Actor */
 /* eslint-env node, module */
 
-const Apify = require("apify")
+exports.scraperMain = async(browser, input) => {
+  console.log("Creating new page...")
+  const page = await browser.newPage()
 
-const apifyMain = async() => {
+  console.log("Navigation...")
+  await page.goto("https://www.example.com")
+
+  console.log("Closing...")
+  await browser.close()
+
+  console.log("Done.")
+
+  return input
+}
+
+/*const apifyMain = async() => {
   const input = await Apify.getValue("INPUT")
 
   console.log("Launching Puppeteer for United...")
@@ -93,6 +105,4 @@ const standardizeResults = (unitedTrip, filterMaxConnections) => {
   }
 
   return results
-}
-
-Apify.main(apifyMain)
+}*/
