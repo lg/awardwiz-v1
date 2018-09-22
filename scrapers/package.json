@@ -2,6 +2,7 @@
   "name": "award-man-scrapers",
   "version": "0.0.1",
   "dependencies": { 
-    "puppeteer": "^1.8.0" 
+    "puppeteer": "^1.8.0",
+    "cors": "*"
   }
 }

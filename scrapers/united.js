@@ -1,14 +1,11 @@
 /* eslint-env node, module */
 
-exports.scraperMain = async(browser, input) => {
-  console.log("Creating new page...")
-  const page = await browser.newPage()
-
+exports.scraperMain = async(page, input) => {
   console.log("Navigation...")
   await page.goto("https://www.example.com")
 
   console.log("Closing...")
-  await browser.close()
+  await page.close()
 
   console.log("Done.")
 

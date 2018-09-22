@@ -24,6 +24,10 @@ export default class GCFProvider {
     // clientId (string): the oauth client_id to use for this project
     // authSignInDivId (string): the id of the div to put the google auth sign in button
     // authSignOutDivId (string): the id of the div to put the google auth sign out button
+
+    this.location = `projects/${this.config.projectName}/locations/${this.config.projectLocation}`
+    this.functionName = `${this.location}/functions/${this.config.functionName}`
+    this.functionUrl = `https://${this.config.projectLocation}-${this.config.projectName}.cloudfunctions.net/${this.config.functionName}`
   }
 
   googleAuthInit() {
@@ -42,6 +46,7 @@ export default class GCFProvider {
         prompt: "select_account",
         onFailure: error => console.error(error),
         onSuccess: () => {
+          console.log("GCF ready.")
           document.querySelector(`#${this.config.authSignInDivId}`).hidden = true
           document.querySelector(`#${this.config.authSignOutDivId}`).hidden = false
           document.querySelector(`#${this.config.authSignOutDivId} button`).onclick = () => {
@@ -85,11 +90,9 @@ export default class GCFProvider {
     const zipFile = await zip.generateAsync({type: "blob"})
 
     console.log("Getting if GCF has up to date scrapers...")
-    const location = `projects/${this.config.projectName}/locations/${this.config.projectLocation}`
-    const functionName = `${location}/functions/${this.config.functionName}`
     let functionOnlyNeedsPatch = false
     try {
-      const existingFunc = await gapi.client.cloudfunctions.projects.locations.functions.get({name: functionName})
+      const existingFunc = await gapi.client.cloudfunctions.projects.locations.functions.get({name: this.functionName})
       if (existingFunc.result.description === roughHash.toString(16)) {
         console.log("Scrapers are up to date!")
         return
@@ -101,7 +104,7 @@ export default class GCFProvider {
     }
 
     console.log("Getting file upload url...")
-    const uploadUrlResp = await gapi.client.cloudfunctions.projects.locations.functions.generateUploadUrl({parent: location})
+    const uploadUrlResp = await gapi.client.cloudfunctions.projects.locations.functions.generateUploadUrl({parent: this.location})
     const {uploadUrl} = uploadUrlResp.result
 
     // WARNING: ABSOLUTELY NASTY HACK SINCE GOOGLE FUNCTIONS HAS A CORS BUG
@@ -112,7 +115,7 @@ export default class GCFProvider {
 
     console.log(`${functionOnlyNeedsPatch ? "Updating" : "Creating"} function...`)
     const funcParams = {
-      name: functionName,
+      name: this.functionName,
       description: roughHash.toString(16),
       sourceUploadUrl: uploadUrl,
       entryPoint: "gcfEntry",
@@ -123,9 +126,9 @@ export default class GCFProvider {
     let operationResp = null
     if (functionOnlyNeedsPatch) {
       const updateMask = Object.keys(funcParams).join(",")
-      operationResp = await gapi.client.cloudfunctions.projects.locations.functions.patch({name: functionName, updateMask, resource: funcParams})
+      operationResp = await gapi.client.cloudfunctions.projects.locations.functions.patch({name: this.functionName, updateMask, resource: funcParams})
     } else {
-      operationResp = await gapi.client.cloudfunctions.projects.locations.functions.create({location, resource: funcParams})
+      operationResp = await gapi.client.cloudfunctions.projects.locations.functions.create({location: this.location, resource: funcParams})
     }
     const operationName = operationResp.result.name
 
@@ -136,13 +139,10 @@ export default class GCFProvider {
   }
 
   async test() {
-    console.log("Calling...")
-    const location = `projects/${this.config.projectName}/locations/${this.config.projectLocation}`
-    const functionName = `${location}/functions/${this.config.functionName}`
-
-    const data = {command: "runScraper", scraper: "united", params: {}}
-    const response = await gapi.client.cloudfunctions.projects.locations.functions.call({name: functionName, resource: {data: JSON.stringify(data)}})
-    const out = JSON.parse(response.body)
+    console.log("Running function...")
+    const body = {scraper: "united", params: {}}
+    const respRaw = await fetch(this.functionUrl, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)})
+    const out = await respRaw.json()
 
     console.dir(out)
     console.log("Done!")
