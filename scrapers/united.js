@@ -2,14 +2,13 @@
 
 exports.scraperMain = async(page, input) => {
   console.log("Navigation...")
-  await page.goto("https://www.example.com")
+  await page.goto("https://ifconfig.co/json")
 
-  console.log("Closing...")
-  await page.close()
+  const debugText = await page.evaluate(() => document.body.innerHTML)
 
   console.log("Done.")
 
-  return input
+  return {input, debugText}
 }
 
 /*const apifyMain = async() => {
