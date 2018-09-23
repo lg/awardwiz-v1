@@ -1,31 +1,7 @@
 /* eslint-env node, module */
 
 exports.scraperMain = async(page, input) => {
-  console.log("Navigation...")
-  await page.goto("https://ifconfig.co/json")
-
-  const debugText = await page.evaluate(() => document.body.innerHTML)
-
-  console.log("Done.")
-
-  return {input, debugText}
-}
-
-/*const apifyMain = async() => {
-  const input = await Apify.getValue("INPUT")
-
-  console.log("Launching Puppeteer for United...")
-  const browser = await Apify.launchPuppeteer({
-    proxyUrl: input.proxyUrl || null
-  })
-
-  if (!input.from || !input.to || !input.date) {
-    console.error("Some parameters missing for call. from, to, and date are required.")
-    return
-  }
-
   console.log("Getting United cookie...")
-  const page = await browser.newPage()
   await page.goto("https://www.united.com/ual/en/us/flight-search/book-a-flight")
 
   console.log("Searching for flights...")
@@ -44,13 +20,9 @@ exports.scraperMain = async(page, input) => {
   const response = await page.waitForResponse("https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/awd")
   const raw = await response.json()
 
-  console.log("Closing Puppeteer...")
-  await browser.close()
-
   console.log("Done.")
 
-  const output = {results: standardizeResults(raw.data.Trips[0], input.maxConnections)}   // eslint-disable-line no-use-before-define
-  await Apify.setValue("OUTPUT", output)
+  return {results: standardizeResults(raw.data.Trips[0], input.maxConnections)}   // eslint-disable-line no-use-before-define
 }
 
 const standardizeResults = (unitedTrip, filterMaxConnections) => {
@@ -101,4 +73,4 @@ const standardizeResults = (unitedTrip, filterMaxConnections) => {
   }
 
   return results
-}*/
+}

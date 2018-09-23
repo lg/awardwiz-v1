@@ -32,6 +32,7 @@ const gcfEntryWithCORS = async(req, res) => {
       args: [
         "--proxy-server=http://127.0.0.1:8203",
         "--no-sandbox",               // required for gcf
+        "--disable-dev-shm-usage",
         "--no-zygote",
         "--disable-accelerated-2d-canvas",
         "--disable-gpu",
@@ -45,6 +46,7 @@ const gcfEntryWithCORS = async(req, res) => {
   console.log("Creating new Puppeteer context...")
   const context = await browser.createIncognitoBrowserContext()
   const page = await context.newPage()
+  await page.setUserAgent((await browser.userAgent()).replace("HeadlessChrome", "Chrome"))
 
   console.log(`Launching scraper '${req.body.scraper}'...`)
   const scraper = require(`./${req.body.scraper}.js`)

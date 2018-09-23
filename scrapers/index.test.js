@@ -27,8 +27,8 @@ class ScraperResponse {
   status(code) {
     this.statusCode = code
     return {
-      send: dummy => {
-        this.debugText = dummy.debugText   // eslint-disable-line prefer-destructuring
+      send: response => {
+        this.response = response
       }
     }
   }
@@ -51,7 +51,7 @@ test("can use Chrome to get our IP", async() => {
   expect(response.statusCode).toBe(200)
 
   const ipResp = await (await fetch("https://ifconfig.co/json")).json()
-  expect(response.debugText).toContain(ipResp.ip)
+  expect(response.response.debugText).toContain(ipResp.ip)
 })
 
 test("using a proxy works and can be switched on the same browser", async() => {
@@ -65,12 +65,29 @@ test("using a proxy works and can be switched on the same browser", async() => {
   const {Resolver} = require("dns").promises
   const resolver = new Resolver()
   const ip = await resolver.resolve4(hostname)
-  expect(response.debugText).toContain(ip)
+  expect(response.response.debugText).toContain(ip)
 
   response = new ScraperResponse()
   await index.gcfEntryWithCORS({body: {scraper: "awesomescraper", params: {}}}, response)
   expect(response.statusCode).toBe(200)
-  expect(response.debugText).not.toContain(ip)
+  expect(response.response.debugText).not.toContain(ip)
 })
 
+describe("scrapers are properly working", async() => {
+  jest.setTimeout(60000)
+
+  test("United scraper for EWR->SFO", async() => {
+    const response = new ScraperResponse()
+
+    const date = new Date()
+    date.setDate(date.getDate() + 100)
+    const searchParams = {
+      from: "EWR",
+      to: "SFO",
+      date: date.toISOString().substr(0, 10)
+    }
+    await index.gcfEntryWithCORS({body: {scraper: "united", proxy: testProxy, params: searchParams}}, response)
+    expect(response.response.results.length).toBeGreaterThan(0)
+  })
+})
 
