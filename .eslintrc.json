@@ -10,12 +10,17 @@
   },
   "env": {
     "browser": true,
-    "es6": true
+    "es6": true,
+    "jest/globals": true
   },
   "plugins": [
-    "html"
+    "html",
+    "jest"
   ],
-  "extends": "eslint:all",
+  "extends": [
+    "eslint:all",
+    "plugin:jest/recommended"
+  ],
   "rules": {
     // what i like
     "semi": ["error", "never"],           // everything is per-line now, no need for semicolons

@@ -60,3 +60,16 @@ exports.gcfEntry = async(req, res) => {
   const corsMiddleware = cors()
   await corsMiddleware(req, res, () => gcfEntryWithCORS(req, res))
 }
+
+// Used by the test suite
+exports.gcfEntryWithCORS = gcfEntryWithCORS
+exports.shutdown = async() => {
+  if (proxyServer) {
+    await proxyServer.close(true)
+    proxyServer = null
+  }
+  if (browser) {
+    await browser.close()
+    browser = null
+  }
+}

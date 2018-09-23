@@ -3,13 +3,19 @@
   "version": "1.0.0",
   "description": "Search for mileage awards on United",
   "main": "README.md",
-  "scripts": {},
+  "scripts": {
+    "test": "jest"
+  },
   "dependencies": {
     "apify": "^0.5.51",
     "scrapers": "./scrapers"
   },
   "devDependencies": {
+    "eslint": "^5.6.0",
+    "eslint-plugin-html": "^4.0.6",
+    "eslint-plugin-jest": "^21.22.1",
     "express": "^4.16.3",
+    "jest": "^23.6.0",
     "node-fetch": "^2.2.0"
   }
 }
