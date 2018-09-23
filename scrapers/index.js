@@ -38,7 +38,8 @@ const gcfEntryWithCORS = async(req, res) => {
         "--disable-gpu",
         "--disable-setuid-sandbox",
         "--no-first-run"
-      ]
+      ],
+      headless: typeof req.body.headless === "undefined" ? true : req.body.headless
     })
   }
 

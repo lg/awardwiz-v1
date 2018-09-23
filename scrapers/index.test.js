@@ -1,9 +1,12 @@
 // Note: Requires a jest.config.js with globals:
 //   testProxy - a working proxy server in http://user:pass@domain.com form
+//   aeroplanUsername - your aeroplan membership id
+//   aeroplanPassword - your aeroplan password
+/* globals testProxy, aeroplanUsername, aeroplanPassword */
 
 /* eslint-env node, module */
 /* eslint-disable global-require */
-/* globals testProxy */
+
 
 let index = null
 const fetch = require("node-fetch")
@@ -75,18 +78,31 @@ test("using a proxy works and can be switched on the same browser", async() => {
 
 describe("scrapers are properly working", async() => {
   jest.setTimeout(60000)
+  const searchDate = new Date()
+  searchDate.setDate(searchDate.getDate() + 100)
+  const searchDateStr = searchDate.toISOString().substr(0, 10)
 
   test("United scraper for EWR->SFO", async() => {
     const response = new ScraperResponse()
-
-    const date = new Date()
-    date.setDate(date.getDate() + 100)
     const searchParams = {
       from: "EWR",
       to: "SFO",
-      date: date.toISOString().substr(0, 10)
+      date: searchDateStr
     }
     await index.gcfEntryWithCORS({body: {scraper: "united", proxy: testProxy, params: searchParams}}, response)
+    expect(response.response.results.length).toBeGreaterThan(0)
+  })
+
+  test("Aeroplan scraper for YOW->YYZ", async() => {
+    const response = new ScraperResponse()
+    const searchParams = {
+      from: "YOW",
+      to: "YYZ",
+      date: searchDateStr,
+      aeroplanUsername,
+      aeroplanPassword
+    }
+    await index.gcfEntryWithCORS({body: {scraper: "aeroplan", params: searchParams}}, response)
     expect(response.response.results.length).toBeGreaterThan(0)
   })
 })

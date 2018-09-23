@@ -1,23 +1,6 @@
-/* This file is uploaded by AwardMan to Apify and run as an Actor */
 /* eslint-env node, module */
 
-const Apify = require("apify")
-
-const apifyMain = async() => {
-  const input = await Apify.getValue("INPUT")
-
-  console.log("Launching Puppeteer for Aeroplan...")
-  const browser = await Apify.launchPuppeteer({
-    proxyUrl: input.proxyUrl || null
-  })
-
-  if (!input.from || !input.to || !input.date || !input.aeroplanUsername || !input.aeroplanPassword) {
-    console.error("Some parameters missing for call. from, to, date, aeroplanUsername, aeroplanPassword are required.")
-    return
-  }
-
-  const page = await browser.newPage()
-
+exports.scraperMain = async(page, input) => {
   const waitAndClick = selector => {
     return page.waitForSelector(selector).then(() => {
       return page.click(selector)
@@ -64,12 +47,10 @@ const apifyMain = async() => {
   const response = await page.waitForResponse("https://www.aeroplan.com/adr/Results_Ajax.jsp?searchType=oneway&forceIkk=false")
   const raw = await response.json()
   await clickNav
-  await browser.close()
 
   console.log("Done.")
 
-  const output = {results: standardizeResults(raw)}   // eslint-disable-line no-use-before-define
-  await Apify.setValue("OUTPUT", output)
+  return {results: standardizeResults(raw)}   // eslint-disable-line no-use-before-define
 }
 
 const standardizeResults = aeroplanTrip => {
@@ -134,5 +115,3 @@ const standardizeResults = aeroplanTrip => {
 
   return results
 }
-
-Apify.main(apifyMain)
