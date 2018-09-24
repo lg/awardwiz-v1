@@ -3,30 +3,25 @@
 //   aeroplanUsername - your aeroplan membership id
 //   aeroplanPassword - your aeroplan password
 /* globals testProxy, aeroplanUsername, aeroplanPassword */
-
-/* eslint-env node, module */
 /* eslint-disable global-require */
-
 
 let index = null
 const fetch = require("node-fetch")
+const {promisify} = require("util")
 
-//////
+////// Helpers
 
-jest.mock("./awesomescraper.js", () => {
-  const AwesomeScraperMock = jest.fn()
-  const awesomeScraper = new AwesomeScraperMock()
-  awesomeScraper.scraperMain = async(page, input) => {
-    await page.goto("https://ifconfig.co/json")
-    const debugText = await page.evaluate("document.body.innerHTML")
-    return {input, debugText}
-  }
-  return awesomeScraper
-}, {virtual: true})
+const genMockScraper = (requireName, code) => {
+  jest.doMock(`./${requireName}.js`, () => {
+    const ScraperMock = jest.fn()
+    const scraper = new ScraperMock()
+    scraper.scraperMain = code
+    return scraper
+  }, {virtual: true})
+}
 
-jest.spyOn(global.console, "log").mockImplementation(() => jest.fn())
-
-class ScraperResponse {
+// What is typically returned from, for example, gcfEntryWithCORS
+class ExpressResponse {
   status(code) {
     this.statusCode = code
     return {
@@ -47,54 +42,94 @@ afterEach(async() => {
   await index.shutdown()
 })
 
-test("can use Chrome to get our IP", async() => {
-  const response = new ScraperResponse()
-  await index.gcfEntryWithCORS({body: {scraper: "awesomescraper", params: {}}}, response)
+test("console instrumenting works", async() => {
+  const prevConsoleInfo = console.log
+  let instrumentedConsoleInfo = null
+  const resultLog = await index.instrumentConsole(async() => {
+    console.log("a")
+    console.info("b")
+    console.error("c")
+    instrumentedConsoleInfo = console.log
+  })
+  const finalConsoleInfo = console.log
 
-  expect(response.statusCode).toBe(200)
-
-  const ipResp = await (await fetch("https://ifconfig.co/json")).json()
-  expect(response.response.debugText).toContain(ipResp.ip)
+  expect(prevConsoleInfo).toBe(finalConsoleInfo)
+  expect(instrumentedConsoleInfo).not.toBe(prevConsoleInfo)
+  expect(resultLog[0]).toMatchObject({type: "log", text: "a"})
+  expect(resultLog[1]).toMatchObject({type: "info", text: "b"})
+  expect(resultLog[2]).toMatchObject({type: "error", text: "c"})
 })
 
-test("using a proxy works and can be switched on the same browser", async() => {
-  let response = new ScraperResponse()
-  await index.gcfEntryWithCORS({body: {scraper: "awesomescraper", proxy: testProxy, params: {}}}, response)
-  expect(response.statusCode).toBe(200)
+test("can use Chrome to open about:blank", async() => {
+  genMockScraper("about-blank-scraper", async(page, input) => {
+    await page.goto("about:blank")
+    return {success: true}
+  })
 
-  const {URL} = require("url")
-  const {hostname} = new URL(testProxy)
+  const expressResponse = new ExpressResponse()
+  await index.gcfEntryWithCORS({body: {scraper: "about-blank-scraper", params: {}}}, expressResponse)
+  expect(expressResponse.response.scraperResult.success).toBe(true)
+})
 
-  const {Resolver} = require("dns").promises
-  const resolver = new Resolver()
-  const ip = await resolver.resolve4(hostname)
-  expect(response.response.debugText).toContain(ip)
+describe("do some IP tests with Chrome", async() => {
+  let realIp = null
+  beforeAll(async() => {
+    genMockScraper("get-your-ip-scraper", async(page, input) => {
+      await page.goto("https://ifconfig.co/json")
+      const debugText = await page.evaluate("document.body.innerHTML")
+      return {debugText}
+    })
 
-  response = new ScraperResponse()
-  await index.gcfEntryWithCORS({body: {scraper: "awesomescraper", params: {}}}, response)
-  expect(response.statusCode).toBe(200)
-  expect(response.response.debugText).not.toContain(ip)
+    realIp = (await (await fetch("https://ifconfig.co/json")).json()).ip
+  })
+
+  test("can use Chrome to get our IP", async() => {
+    const expressResponse = new ExpressResponse()
+    await index.gcfEntryWithCORS({body: {scraper: "get-your-ip-scraper", params: {}}}, expressResponse)
+
+    expect(expressResponse.statusCode).toBe(200)
+    expect(expressResponse.response.scraperResult.debugText).toContain(realIp)
+  })
+
+  test("using a proxy works and can be switched on the same browser", async() => {
+    let expressResponse = new ExpressResponse()
+    await index.gcfEntryWithCORS({body: {scraper: "get-your-ip-scraper", proxy: testProxy, params: {}}}, expressResponse)
+    expect(expressResponse.statusCode).toBe(200)
+
+    const {URL} = require("url")
+    const {hostname} = new URL(testProxy)
+    const dns = require("dns")
+    const resolve4 = promisify(dns.resolve4)
+    const ip = await resolve4(hostname)
+    expect(expressResponse.response.scraperResult.debugText).toContain(ip)
+
+    expressResponse = new ExpressResponse()
+    await index.gcfEntryWithCORS({body: {scraper: "get-your-ip-scraper", params: {}}}, expressResponse)
+    expect(expressResponse.statusCode).toBe(200)
+    expect(expressResponse.response.scraperResult.debugText).toContain(realIp)
+  })
 })
 
 describe("scrapers are properly working", async() => {
-  jest.setTimeout(60000)
+  jest.setTimeout(90000)
+
   const searchDate = new Date()
   searchDate.setDate(searchDate.getDate() + 100)
   const searchDateStr = searchDate.toISOString().substr(0, 10)
 
   test("United scraper for EWR->SFO", async() => {
-    const response = new ScraperResponse()
+    const expressResponse = new ExpressResponse()
     const searchParams = {
       from: "EWR",
       to: "SFO",
       date: searchDateStr
     }
-    await index.gcfEntryWithCORS({body: {scraper: "united", proxy: testProxy, params: searchParams}}, response)
-    expect(response.response.results.length).toBeGreaterThan(0)
+    await index.gcfEntryWithCORS({body: {scraper: "united", proxy: testProxy, params: searchParams}}, expressResponse)
+    expect(expressResponse.response.scraperResult.searchResults.length).toBeGreaterThan(0)
   })
 
   test("Aeroplan scraper for YOW->YYZ", async() => {
-    const response = new ScraperResponse()
+    const expressResponse = new ExpressResponse()
     const searchParams = {
       from: "YOW",
       to: "YYZ",
@@ -102,8 +137,7 @@ describe("scrapers are properly working", async() => {
       aeroplanUsername,
       aeroplanPassword
     }
-    await index.gcfEntryWithCORS({body: {scraper: "aeroplan", params: searchParams}}, response)
-    expect(response.response.results.length).toBeGreaterThan(0)
+    await index.gcfEntryWithCORS({body: {scraper: "aeroplan", params: searchParams}}, expressResponse)
+    expect(expressResponse.response.scraperResult.searchResults.length).toBeGreaterThan(0)
   })
 })
-

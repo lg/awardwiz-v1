@@ -1,5 +1,3 @@
-/* eslint-env node, module */
-
 exports.scraperMain = async(page, input) => {
   const waitAndClick = selector => {
     return page.waitForSelector(selector).then(() => {
@@ -7,50 +5,55 @@ exports.scraperMain = async(page, input) => {
     })
   }
 
+  console.log("Going to homepage...")
   await page.goto("https://www.aeroplan.com")
 
-  // Language selection
+  console.log("Selecting language...")
   await waitAndClick(".btn-primary")
   await page.waitForSelector(".header-login-btn")
 
-  // Login
+  console.log("Logging in...")
   await waitAndClick(".header-login-btn")
   await page.type(".header-login-form-inner-wrapper #aeroplanNumber", input.aeroplanUsername)
   await page.type(".header-login-form-inner-wrapper input[type=password]", input.aeroplanPassword)
   await page.click(".header-login-form-inner-wrapper .form-login-submit")
   await page.waitForSelector(".header-logout-btn")
 
-  // Search (and first wait for the default airport to get populated)
+  console.log("Going to search page and waiting for default airport...")
   await page.goto("https://www.aeroplan.com/en/use-your-miles/travel.html", {waitUntil: "networkidle0"})
 
-  // Search - One-way
+  console.log("Selecting one-way...")
   await waitAndClick("div[data-automation=round-trip-trip-type]")
   await waitAndClick("div[data-value=One-way]")
 
-  // Search - Origin
+  console.log("Setting origin...")
   await waitAndClick("div[data-automation=one-way-from-location]")
   await page.keyboard.type(input.from)
   await waitAndClick("div[data-automation=one-way-from-location] div[data-selectable]")
 
-  // Search - Destination
+  console.log("Setting destination...")
   await waitAndClick("div[data-automation=one-way-to-location]")
   await page.keyboard.type(input.to)
   await waitAndClick("div[data-automation=one-way-to-location] div[data-selectable]")
 
-  // Search - Date (mm/dd/yyyy)
+  console.log("Setting date (mm/dd/yyyy)...")
   const aeroplanDate = `${input.date.substr(5, 2)}/${input.date.substr(8, 2)}/${input.date.substr(0, 4)}`
   await page.type("div[data-automation=one-way-departure-date] #l1Oneway", aeroplanDate)
 
   // Start search and wait for results
+  console.log("Starting search and waiting for results...")
   const clickNav = page.waitForNavigation({waitUntil: "networkidle0"})
   await page.click("div[data-automation=one-way-submit] button")
   const response = await page.waitForResponse("https://www.aeroplan.com/adr/Results_Ajax.jsp?searchType=oneway&forceIkk=false")
   const raw = await response.json()
   await clickNav
 
+  console.log("Parsing results...")
+  const standardizedResults = standardizeResults(raw)
+
   console.log("Done.")
 
-  return {results: standardizeResults(raw)}   // eslint-disable-line no-use-before-define
+  return {searchResults: standardizedResults}
 }
 
 const standardizeResults = aeroplanTrip => {

@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "Search for mileage awards on United",
   "main": "README.md",
+  "license": "MIT",
   "scripts": {
     "test": "jest"
   },
   "dependencies": {
-    "apify": "^0.5.51",
     "scrapers": "./scrapers"
   },
   "devDependencies": {

@@ -1,5 +1,3 @@
-/* eslint-env node, module */
-
 exports.scraperMain = async(page, input) => {
   console.log("Getting United cookie...")
   await page.goto("https://www.united.com/ual/en/us/flight-search/book-a-flight")
@@ -20,9 +18,12 @@ exports.scraperMain = async(page, input) => {
   const response = await page.waitForResponse("https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/awd")
   const raw = await response.json()
 
+  console.log("Parsing results...")
+  const standardizedResults = standardizeResults(raw.data.Trips[0], input.maxConnections)
+
   console.log("Done.")
 
-  return {results: standardizeResults(raw.data.Trips[0], input.maxConnections)}   // eslint-disable-line no-use-before-define
+  return {searchResults: standardizedResults}
 }
 
 const standardizeResults = (unitedTrip, filterMaxConnections) => {

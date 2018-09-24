@@ -1,6 +1,4 @@
 {
-  "globals": {
-  },
   "parserOptions": {
     "ecmaVersion": 8,
     "sourceType": "module",
@@ -10,6 +8,7 @@
   },
   "env": {
     "browser": true,
+    "node": false,
     "es6": true,
     "jest/globals": true
   },
@@ -17,6 +16,8 @@
     "html",
     "jest"
   ],
+  "root": true,
+
   "extends": [
     "eslint:all",
     "plugin:jest/recommended"
@@ -48,6 +49,8 @@
     "nonblock-statement-body-position": ["error", "below"],         // im a fan of no curlies when not necessary
     "no-multi-spaces": ["error", { "ignoreEOLComments": true }],    // sometimes (like here) i want comments away from the code
     "arrow-body-style": "off",                                      // unnecessary rule, not clear what it's solving for
+    "no-unused-vars": ["error", {"args": "none"}],                  // this is useful, but args arent defined by me
+    "no-use-before-define": ["error", {"variables": false}],        // it's usually safe since this problem usually happens at the top level
 
     // can compromise
     "newline-per-chained-call": "off",    // yes it can be abused, but this is how to keep things simple holistically
@@ -60,23 +63,5 @@
     "no-inline-comments": "off",          // this is fine
     "line-comment-position": "off",       // sometimes you just need to describe whats going on
     "require-await": "off"
-
-    // old and decided against
-    // "no-unused-vars": ["error", {"vars": "local", "argsIgnorePattern": "^_"}],
-
-    // old and unchecked
-    // "no-warning-comments": "off",
-    // "object-curly-newline": "off",
-    // "no-debugger": "off",
-    // "no-inline-comments": "off",
-    // "no-confusing-arrow": "off",
-
-    // "newline-before-return": "off",
-    // "id-length": ["error", {"exceptions": ["_"]}],
-    // "capitalized-comments": "off",
-    // "line-comment-position": "off",
-    // "newline-after-var": "off",
-  },
-
-  "root": true
+  }
 }
