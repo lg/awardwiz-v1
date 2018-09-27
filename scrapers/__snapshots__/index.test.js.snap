@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`console instrumenting works 1`] = `
+Array [
+  Object {
+    "date": "1970-01-01T00:00:00.000Z",
+    "text": "a",
+    "type": "log",
+  },
+  Object {
+    "date": "1970-01-01T00:00:00.000Z",
+    "text": "b",
+    "type": "info",
+  },
+  Object {
+    "date": "1970-01-01T00:00:00.000Z",
+    "text": "c",
+    "type": "error",
+  },
+]
+`;

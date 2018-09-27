@@ -5,7 +5,7 @@
 /* globals testProxy, aeroplanUsername, aeroplanPassword */
 /* eslint-disable global-require */
 
-let index = null
+const JestDateMock = require("jest-date-mock")
 const fetch = require("node-fetch")
 const {promisify} = require("util")
 
@@ -34,6 +34,7 @@ class ExpressResponse {
 
 //////
 
+let index = null
 beforeEach(async() => {
   index = require("./index")
 })
@@ -43,6 +44,8 @@ afterEach(async() => {
 })
 
 test("console instrumenting works", async() => {
+  JestDateMock.advanceTo()
+
   const prevConsoleInfo = console.log
   let instrumentedConsoleInfo = null
   const resultLog = await index.instrumentConsole(async() => {
@@ -55,9 +58,9 @@ test("console instrumenting works", async() => {
 
   expect(prevConsoleInfo).toBe(finalConsoleInfo)
   expect(instrumentedConsoleInfo).not.toBe(prevConsoleInfo)
-  expect(resultLog[0]).toMatchObject({type: "log", text: "a"})
-  expect(resultLog[1]).toMatchObject({type: "info", text: "b"})
-  expect(resultLog[2]).toMatchObject({type: "error", text: "c"})
+  expect(resultLog).toMatchSnapshot()
+
+  JestDateMock.clear()
 })
 
 test("can use Chrome to open about:blank", async() => {
