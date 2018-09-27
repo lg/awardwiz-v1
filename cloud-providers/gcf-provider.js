@@ -121,6 +121,7 @@ export default class GCFProvider {
       entryPoint: "gcfEntry",
       httpsTrigger: {},
       runtime: "nodejs8",
+      timeout: "180s",
       availableMemoryMb: 2048
     }
     let operationResp = null

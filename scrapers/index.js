@@ -2,12 +2,6 @@ const puppeteer = require("puppeteer")
 const PuppeteerHar = require("puppeteer-har")
 const cors = require("cors")
 const proxyChain = require("proxy-chain")
-const {promisify} = require("util")
-
-const fs = require("fs")
-const unlinkFile = promisify(fs.unlink)
-const readFile = promisify(fs.readFile)
-const fileExists = promisify(fs.exists)
 
 // Used for caching incase the runner doesn't throw away our environment
 let browser = null
@@ -68,23 +62,15 @@ const instrumentConsole = async toRun => {
 }
 
 const instrumentPuppeteer = async(page, toRun) => {
-  if (await fileExists("/tmp/trace.json"))
-    await unlinkFile("/tmp/trace.json")
-  await page.tracing.start({path: "/tmp/trace.json", screenshots: true})
-
   const har = new PuppeteerHar(page)
   await har.start()
 
   await toRun()
 
   const harResult = await har.stop()
+  const screenshot = await page.screenshot({type: "jpeg", quality: 90, fullPage: true, encoding: "base64"})
 
-  await page.tracing.stop()
-  const traceResult = await readFile("/tmp/trace.json", "utf-8")
-  if (await fileExists("/tmp/trace.json"))
-    await unlinkFile("/tmp/trace.json")
-
-  return {har: harResult, trace: JSON.parse(traceResult)}
+  return {har: harResult, screenshot}
 }
 
 const gcfEntryWithCORS = async(req, res) => {
