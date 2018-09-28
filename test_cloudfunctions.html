@@ -1,41 +1,39 @@
 <head>
   <meta charset="utf-8" />
-
-  <script src="https://apis.google.com/js/platform.js?onload=gInit" async defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js" async defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.0/spark-md5.min.js" async defer></script>
 </head>
 
 Sign in to your Google Cloud account:
 <div id="googleSignIn" style="height: 20px"></div><div id="googleSignOut" style="height: 20px" hidden><button>Sign out</button></div>
+
 <br/>
 <button onclick="window.prep()">prep</button>
 <button onclick="window.test()">test</button>
 
 <script type="module">
   import GCFProvider from "./cloud-providers/gcf-provider.js"
-  
-  const SCRAPER_DIR = "scrapers"
-  const CLOUD_FUNCTION_NAME = "award-man"
-  const CLOUD_FUNCTIONS_LOCATION = "us-central1"
 
   const gcf = new GCFProvider({
     files: ["united.js", "aeroplan.js", "index.js", "package.json"],
-    filesDir: SCRAPER_DIR,
-    projectName: CLOUD_FUNCTION_NAME,
-    functionName: CLOUD_FUNCTION_NAME,
-    projectLocation: CLOUD_FUNCTIONS_LOCATION,
+    filesDir: "scrapers",
+    projectName: "award-man",
+    functionName: "award-man",
+    projectLocation: "us-central1",
     clientId: "224829437062-cfk51jtehv7mbeq5i60uf82n11s343rr.apps.googleusercontent.com",
     authSignInDivId: "googleSignIn",
     authSignOutDivId: "googleSignOut"
   })
 
-  window.gInit = () => gcf.googleAuthInit()
+  gcf.initOnPage()
+
+  //window.gInit = () => gcf.googleAuthInitEntry()
   window.prep = async() => {
     await gcf.prep()
   }
   window.test = async() => {
-    await gcf.test()
+    await gcf.test({
+      from: "EWR",
+      to: "SFO",
+      date: "2018-12-01"
+    }, null)
   }
 </script>
-  

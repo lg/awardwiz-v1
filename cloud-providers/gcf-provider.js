@@ -1,15 +1,7 @@
 // Google Cloud Functions provider for AwardMan
 //
-// To use GCF, there are a few things you need:
-//   1. to include the following libs:
-//      - <script src="https://apis.google.com/js/platform.js?onload=gInit" async defer></script>
-//      - <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js" async defer></script>
-//      - <script src="https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.0/spark-md5.min.js" async defer></script>
-//   2. add some form of div to sign-in/out from google via oauth:
-//      <div id="googleSignIn" style="height: 20px"></div><div id="googleSignOut" style="height: 20px" hidden><button>Sign out</button></div>
-//   3. create a new project on google cloud console and create an oauth clientId token
-//   4. init the GCFProvider and then after make sure to fulfill that 'onload' from platform.js. ex:
-//      window.gInit = () => gcf.googleAuthInit()
+// Example of div to show the login button:
+//   <div id="googleSignIn" style="height: 20px"></div><div id="googleSignOut" style="height: 20px" hidden><button>Sign out</button></div>
 
 /* global JSZip, SparkMD5, gapi */
 
@@ -30,7 +22,29 @@ export default class GCFProvider {
     this.functionUrl = `https://${this.config.projectLocation}-${this.config.projectName}.cloudfunctions.net/${this.config.functionName}`
   }
 
-  googleAuthInit() {
+  async initOnPage() {
+    if (window.gInit || window.gapi)
+      throw new Error("Cannot reload the GCF Provider!")
+
+    // Called by GCP after platform.js loads
+    window.gInit = () => {
+      this.googleAuthInitEntry()
+    }
+
+    [
+      {obj: "gapi", url: "https://apis.google.com/js/platform.js?onload=gInit"},
+      {obj: "JSZip", url: "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"},
+      {obj: "SparkMD5", url: "https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.0/spark-md5.min.js"}
+    ].forEach(({obj, url}) => {
+      if (!window[obj]) {
+        const scriptTag = document.createElement("script")
+        scriptTag.src = url
+        document.head.appendChild(scriptTag)
+      }
+    })
+  }
+
+  googleAuthInitEntry() {
     gapi.load("client:auth2", async() => {
       /* eslint-disable camelcase */
       await gapi.client.init({
@@ -139,9 +153,9 @@ export default class GCFProvider {
     console.log("Ready!")
   }
 
-  async test() {
+  async test(params, proxy) {
     console.log("Running function...")
-    const body = {scraper: "united", params: {}}
+    const body = {scraper: "united", proxy, params}
     const respRaw = await fetch(this.functionUrl, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)})
     const out = await respRaw.json()
 
