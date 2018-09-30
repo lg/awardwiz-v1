@@ -85,7 +85,7 @@ const gcfEntryWithCORS = async(req, res) => {
   const page = await context.newPage()
 
   await page.setUserAgent((await browser.userAgent()).replace("HeadlessChrome", "Chrome"))
-  await page.setDefaultNavigationTimeout(60000)
+  await page.setDefaultNavigationTimeout(90000)
 
   console.log(`Launching scraper '${req.body.scraper}'...`)
   const scraper = require(`./${req.body.scraper}.js`)             // eslint-disable-line global-require

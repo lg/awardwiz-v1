@@ -2,11 +2,16 @@
   <meta charset="utf-8" />
 
   <script src="https://unpkg.com/ag-grid/dist/ag-grid.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
 </head>
 
 Open Console (⌥-⌘-C) to view status<br/><br/>
-
-<label for="apifyToken">Apify token: </label><input type="text" id="apifyToken" value=""/><br/>
+<label for="gcfClientId">GCF Client ID: </label><input type="text" id="gcfClientId" value=""/><br/>
+<div id="googleSignIn" style="height: 20px"></div><div id="googleSignOut" style="height: 20px" hidden><button>Sign out</button></div>
+<label for="gcfProjectLocation">GCF Project Location: </label><input type="text" id="gcfProjectLocation" value=""/><br/>
+<label for="gcfProjectName">GCF Project Name: </label><input type="text" id="gcfProjectName" value=""/><br/>
+<label for="gcfFunctionName">GCF Function Name: </label><input type="text" id="gcfFunctionName" value=""/><br/>
+<br/>
 <label for="proxyUrl">Proxy URL: </label><input type="text" id="proxyUrl" value=""/><br/>
 <br/>
 <label for="aeroplanUsername">Aeroplan username: </label><input type="text" id="aeroplanUsername" value=""/><br/>
@@ -17,7 +22,9 @@ Open Console (⌥-⌘-C) to view status<br/><br/>
 <label for="date">date: </label><input type="text" id="date" value=""/> (yyyy-mm-dd)<br/>
 <br/>
 <button onclick="awardman.prep()">prep</button>
-<button onclick="awardman.test()">test</button><br/><br/>
+<button onclick="awardman.search()">search</button>
+<div id="searchStatus" style="font-size:8pt">(enter details and hit Search above)</div>
+<br/><br/>
 
 <div id="resultsGrid" style="height:305px; width:850px; padding-bottom: 5px" class="ag-theme-balham"></div>
 

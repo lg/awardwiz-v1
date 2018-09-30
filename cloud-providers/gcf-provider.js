@@ -93,6 +93,9 @@ export default class GCFProvider {
   }
 
   async prep() {
+    if (!gapi.client.getToken())
+      throw new Error("You must be logged in with your Google Account first!")
+
     console.log("Prepping package...")
     const zip = new JSZip()
     let roughHash = 0     // doing this because we want the same hash regardless of upload order
@@ -153,13 +156,15 @@ export default class GCFProvider {
     console.log("Ready!")
   }
 
-  async test(params, proxy) {
+  async run(params) {
+    await this.prep()
+
     console.log("Running function...")
-    const body = {scraper: "united", proxy, params}
-    const respRaw = await fetch(this.functionUrl, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)})
+    const respRaw = await fetch(this.functionUrl, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(params)})
     const out = await respRaw.json()
 
-    console.dir(out)
     console.log("Done!")
+
+    return out
   }
 }
