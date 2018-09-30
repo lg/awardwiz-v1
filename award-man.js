@@ -70,38 +70,13 @@ export default class AwardMan {
       }
     })
 
-    const unitedDiv = await this.genScraperDebugRow("united", raw)
-    document.getElementById("searchStatus").innerHTML = ""
-    document.getElementById("searchStatus").appendChild(unitedDiv)
+    const consoleLog = raw.consoleLog.map(item => `[${item.date}] ${item.type} - ${item.text}`.replace("T", " ").replace("Z", "")).join("\n")
+    document.getElementById("searchStatus").innerHTML = `
+      <a href="data:image/jpeg;base64,${raw.screenshot}">show screenshot</a>
+      <a href="data:text/plain;base64,${btoa(consoleLog)}">show log</a> (right click to open)`
 
     this.grid.grid.api.hideOverlay()
-
     this.grid.grid.api.setRowData(raw.scraperResult.searchResults)
-
-    console.log("Done.")
-  }
-
-  async genScraperDebugRow(scraper, rawResponse) {
-    const div = document.createElement("div")
-    div.appendChild(document.createTextNode(`${scraper} - `))
-
-    const debugItems = []
-    debugItems.push({item: "screenshot", mime: "image/jpeg", extension: "jpg", base64: rawResponse.puppeteerInfo.screenshot})
-    debugItems.push({item: "log", mime: "application/json", extension: "json", base64: btoa(JSON.stringify(rawResponse.consoleLog))})
-    debugItems.push({item: "har", mime: "application/json", extension: "har", base64: btoa(JSON.stringify(rawResponse.puppeteerInfo.har))})
-    debugItems.forEach(async debugItem => {
-      const blob = await (await fetch(`data:${debugItem.mime};base64,${debugItem.base64}`)).blob()
-      const linkEl = document.createElement("a")
-      linkEl.addEventListener("click", () => {
-        window.saveAs(blob, `${scraper}-${debugItem.item}.${debugItem.extension}`)
-      })
-      linkEl.href = "#"
-      linkEl.innerText = `show ${debugItem.item}`
-      div.appendChild(linkEl)
-      div.appendChild(document.createTextNode(" "))
-    })
-
-    return div
   }
 
   static onRowClicked(params) {

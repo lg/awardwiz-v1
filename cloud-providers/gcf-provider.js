@@ -157,8 +157,6 @@ export default class GCFProvider {
   }
 
   async run(params) {
-    await this.prep()
-
     console.log("Running function...")
     const respRaw = await fetch(this.functionUrl, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(params)})
     const out = await respRaw.json()

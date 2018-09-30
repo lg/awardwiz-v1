@@ -14,10 +14,6 @@
   "dependencies": {
     "puppeteer": "^1.8.0",
     "cors": "^2.8.4",
-    "proxy-chain": "^0.2.5",
-    "puppeteer-har": "^1.0.2"
-  },
-  "resolutions": {
-    "puppeteer-har/chrome-har": "^0.4.1"
+    "proxy-chain": "^0.2.5"
   }
 }

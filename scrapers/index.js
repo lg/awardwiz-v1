@@ -1,5 +1,4 @@
 const puppeteer = require("puppeteer")
-const PuppeteerHar = require("puppeteer-har")
 const cors = require("cors")
 const proxyChain = require("proxy-chain")
 
@@ -61,18 +60,6 @@ const instrumentConsole = async toRun => {
   return fullConsoleLog
 }
 
-const instrumentPuppeteer = async(page, toRun) => {
-  const har = new PuppeteerHar(page)
-  await har.start()
-
-  await toRun()
-
-  const harResult = await har.stop()
-  const screenshot = await page.screenshot({type: "jpeg", quality: 90, fullPage: true, encoding: "base64"})
-
-  return {har: harResult, screenshot}
-}
-
 const gcfEntryWithCORS = async(req, res) => {
   console.log(`Welcome! Request is: ${JSON.stringify(req.body)}`)
 
@@ -92,15 +79,15 @@ const gcfEntryWithCORS = async(req, res) => {
 
   const response = {}
   response.consoleLog = await instrumentConsole(async() => {
-    response.puppeteerInfo = await instrumentPuppeteer(page, async() => {
-      try {
-        response.scraperResult = await scraper.scraperMain(page, req.body.params)
-      } catch (err) {
-        console.error(err)
-        response.error = err
-      }
-    })
+    try {
+      response.scraperResult = await scraper.scraperMain(page, req.body.params)
+    } catch (err) {
+      console.error(err)
+      response.error = err
+    }
   })
+
+  response.screenshot = await page.screenshot({type: "jpeg", quality: 90, fullPage: true, encoding: "base64"})
 
   console.log("Closing context...")
   await context.close()
