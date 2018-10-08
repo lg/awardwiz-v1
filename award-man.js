@@ -59,24 +59,51 @@ export default class AwardMan {
   async search() {
     this.grid.grid.api.showLoadingOverlay()
 
-    const raw = await this.gcf.run({
-      scraper: "united",
-      proxy: this.config.proxyUrl,
-      params: {
-        from: this.config.origin,
-        to: this.config.destination,
-        date: this.config.date,
-        maxConnections: 1
-      }
-    })
+    const searchParams = {
+      from: this.config.origin,
+      to: this.config.destination,
+      date: this.config.date,
+      maxConnections: 1
+    }
 
-    const consoleLog = raw.consoleLog.map(item => `[${item.date}] ${item.type} - ${item.text}`.replace("T", " ").replace("Z", "")).join("\n")
-    document.getElementById("searchStatus").innerHTML = `
-      <a href="data:image/jpeg;base64,${raw.screenshot}">show screenshot</a>
-      <a href="data:text/plain;base64,${btoa(consoleLog)}">show log</a> (right click to open)`
+    let allResults = []
+    document.getElementById("searchStatus").innerHTML = ""
+
+    const runScraper = async scraperParams => {
+      // Keep a per-scraper status visible
+      const statusDiv = document.createElement("div")
+      statusDiv.innerHTML = `Searching ${scraperParams.scraper}...`
+      document.getElementById("searchStatus").appendChild(statusDiv)
+
+      // Wait for scraper results
+      console.log(`Running scraper '${scraperParams.scraper}'...`)
+      const result = await this.gcf.run(scraperParams)
+      console.log(`Scraper '${scraperParams.scraper}' returned ${result.scraperResult.searchResults.length} result(s).`)
+
+      // Individual status per scraper
+      const consoleLog = result.consoleLog.map(item => `[${item.date}] ${item.type} - ${item.text}`.replace("T", " ").replace("Z", "")).join("\n")
+      statusDiv.innerHTML = `${scraperParams.scraper} -
+        ${result.scraperResult.searchResults.length} result(s) -
+        <a href="data:image/jpeg;base64,${result.screenshot}">show screenshot</a>
+        <a href="data:text/plain;base64,${btoa(consoleLog)}">show log</a> (right click to open)`
+
+      // Append results to existing results w/ serice name
+      allResults = allResults.concat(result.scraperResult.searchResults.map(searchResult => {
+        searchResult.service = scraperParams.scraper
+        return searchResult
+      }))
+      this.grid.grid.api.setRowData(allResults)
+    }
+
+    console.log("Starting search...")
+    await Promise.all([
+      runScraper({scraper: "united", proxy: this.config.proxyUrl, params: searchParams}),
+      runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})})
+    ])
+
+    console.log("Completed search.")
 
     this.grid.grid.api.hideOverlay()
-    this.grid.grid.api.setRowData(raw.scraperResult.searchResults)
   }
 
   static onRowClicked(params) {
