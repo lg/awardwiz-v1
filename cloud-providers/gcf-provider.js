@@ -4,7 +4,7 @@
 //   1. Create a Google Cloud Platform account on https://console.cloud.google.com
 //   2. Create a new project on https://console.cloud.google.com/projectcreate
 //   3. Create a OAuth client id on: https://console.cloud.google.com/apis/credentials/oauthclient
-//   4. Onto the OAuth client, add a javascript origin, for example: "http://localhost:8000"
+//   4. Onto the OAuth client, add a javascript origin, for example: "http://localhost:8000" and/or "http://127.0.0.1:8000"
 //   5. Enable the Google Cloud Functions API on the project: https://console.developers.google.com/apis/library/cloudfunctions.googleapis.com
 //
 // For developers, example of div to show the login button:
@@ -112,19 +112,20 @@ export default class GCFProvider {
 
     console.log("Prepping package...")
     const zip = new JSZip()
-    let roughHash = 0     // doing this because we want the same hash regardless of upload order
-    await Promise.all(this.config.files.map(async file => {
+    const md5 = new SparkMD5()
+    for await (const file of this.config.files) {
       const scraperCode = await fetch(`${this.config.filesDir}/${file}`).then(result => result.text())
       zip.file(file, scraperCode)
-      roughHash += parseInt(SparkMD5.hash(scraperCode).substr(0, 5), 16)
-    }))
+      md5.append(scraperCode)
+    }
     const zipFile = await zip.generateAsync({type: "blob"})
+    const filesHash = md5.end().substr(0, 5)
 
     console.log("Getting if GCF has up to date scrapers...")
     let functionOnlyNeedsPatch = false
     try {
       const existingFunc = await gapi.client.cloudfunctions.projects.locations.functions.get({name: this.functionName})
-      if (existingFunc.result.description === roughHash.toString(16)) {
+      if (existingFunc.result.description === filesHash) {
         console.log("Scrapers are up to date!")
         return
       }
@@ -147,7 +148,7 @@ export default class GCFProvider {
     console.log(`${functionOnlyNeedsPatch ? "Updating" : "Creating"} function...`)
     const funcParams = {
       name: this.functionName,
-      description: roughHash.toString(16),
+      description: filesHash,
       sourceUploadUrl: uploadUrl,
       entryPoint: "gcfEntry",
       httpsTrigger: {},
