@@ -12,10 +12,11 @@ export default class AwardMan {
       authSignInDivId: "googleSignIn",
       authSignOutDivId: "googleSignOut",
 
-      projectName: this.config.gcfProjectName,
-      functionName: this.config.gcfFunctionName,
+      clientId: this.config.gcpClientId,
+      projectId: this.config.gcpProjectId,
+
       projectLocation: this.config.gcfProjectLocation,
-      clientId: this.config.gcfClientId
+      functionName: this.config.gcfFunctionName
     })
     this.gcf.initOnPage()
 
@@ -25,11 +26,10 @@ export default class AwardMan {
 
   static loadConfigAndUpdateDocument() {
     const config = {
-      gcfProjectName: localStorage.gcfProjectName || "award-man",
+      gcpClientId: localStorage.gcpClientId || "224829437062-cfk51jtehv7mbeq5i60uf82n11s343rr.apps.googleusercontent.com",
+      gcpProjectId: localStorage.gcpProjectId || "award-man-218722",
       gcfFunctionName: localStorage.gcfFunctionName || "award-man",
       gcfProjectLocation: localStorage.gcfProjectLocation || "us-central1",
-      gcfClientId: localStorage.gcfClientId || "224829437062-cfk51jtehv7mbeq5i60uf82n11s343rr.apps.googleusercontent.com",   // should be ok to share?
-
       proxyUrl: localStorage.proxyUrl || "",
       aeroplanUsername: localStorage.aeroplanUsername || "",
       aeroplanPassword: localStorage.aeroplanPassword || "",
