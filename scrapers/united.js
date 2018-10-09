@@ -30,8 +30,8 @@ const standardizeResults = (unitedTrip, filterMaxConnections) => {
   const results = []
   for (const flight of unitedTrip.Flights) {
     const result = {
-      fromDateTime: flight.DepartDateTime,
-      toDateTime: flight.LastDestinationDateTime,
+      fromDateTime: monthDayYearToYearMonthDayDateTime(flight.DepartDateTime),
+      toDateTime: monthDayYearToYearMonthDayDateTime(flight.LastDestinationDateTime),
       fromAirport: flight.Origin,
       toAirport: flight.LastDestination.Code,
       flights: `${flight.OperatingCarrier}${flight.FlightNumber}`,
@@ -74,4 +74,8 @@ const standardizeResults = (unitedTrip, filterMaxConnections) => {
   }
 
   return results
+}
+
+const monthDayYearToYearMonthDayDateTime = monthDayYear => {
+  return `${monthDayYear.substr(6, 4)}-${monthDayYear.substr(0, 2)}-${monthDayYear.substr(3, 2)} ${monthDayYear.substr(11)}`
 }

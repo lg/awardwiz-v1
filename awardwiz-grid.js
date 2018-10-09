@@ -16,7 +16,7 @@ export default class AwardWizGrid {
     return `${milesFormatter.format(cost.miles / 1000)}k + ${cashFormatter.format(cost.cash)}`
   }
 
-  static timeOnlyFormatter(params) {
+  static dateTimeFormatter(params) {
     const formatter = new Intl.DateTimeFormat("en-US", {month: "numeric", day: "numeric", hour: "numeric", minute: "numeric"})
     return formatter.format(new Date(params.value))
   }
@@ -62,13 +62,14 @@ export default class AwardWizGrid {
   configureGrid(gridDiv) {
     const gridOptions = {
       columnDefs: [
-        {headerName: "Origin Time", field: "fromDateTime", valueFormatter: this.timeOnlyFormatter, width: 110},
-        {headerName: "Dest Time", field: "toDateTime", valueFormatter: this.timeOnlyFormatter, width: 110},
+        {headerName: "Service", field: "service", width: 100},
+        {headerName: "Origin Time", field: "fromDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, width: 110, sort: "asc"},
+        {headerName: "Dest Time", field: "toDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, width: 110},
         {headerName: "Airports", field: "airports", valueGetter: params => `${params.data.fromAirport} -> ${params.data.toAirport}`, width: 100},
         {headerName: "Flights", field: "flights"},
-        {headerName: "Economy", field: "costs.economy.miles", valueFormatter: this.milesAndCashFormatter, cellStyle: this.milesAndCashStyler, comparator: this.milesComparator, filter: "agNumberColumnFilter", width: 110},
-        {headerName: "Business", field: "costs.business.miles", valueFormatter: this.milesAndCashFormatter, cellStyle: this.milesAndCashStyler, comparator: this.milesComparator, filter: "agNumberColumnFilter", width: 110},
-        {headerName: "First", field: "costs.first.miles", valueFormatter: this.milesAndCashFormatter, cellStyle: this.milesAndCashStyler, comparator: this.milesComparator, filter: "agNumberColumnFilter", width: 110}
+        {headerName: "Economy", field: "costs.economy.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110},
+        {headerName: "Business", field: "costs.business.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110},
+        {headerName: "First", field: "costs.first.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110}
       ],
       enableSorting: true,
       enableFilter: true,
@@ -80,7 +81,7 @@ export default class AwardWizGrid {
       pagination: true,
       paginationPageSize: PAGINATION_SIZE,
 
-      onFilterChanged: this.updateFilterValue,
+      onFilterChanged: AwardWizGrid.updateFilterValue,
       onRowClicked: this.onRowClicked
     }
 
