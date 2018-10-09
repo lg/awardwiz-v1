@@ -1,9 +1,9 @@
-import AwardManGrid from "./award-man-grid.js"
+import AwardWizGrid from "./awardwiz-grid.js"
 import GCFProvider from "./cloud-providers/gcf-provider.js"
 
-export default class AwardMan {
+export default class AwardWiz {
   constructor() {
-    this.config = AwardMan.loadConfigAndUpdateDocument()
+    this.config = AwardWiz.loadConfigAndUpdateDocument()
 
     this.united = null
     this.gcf = new GCFProvider({
@@ -20,15 +20,15 @@ export default class AwardMan {
     })
     this.gcf.initOnPage()
 
-    this.grid = new AwardManGrid(AwardMan.onRowClicked)
+    this.grid = new AwardWizGrid(AwardWiz.onRowClicked)
     this.grid.configureGrid(document.querySelector("#resultsGrid"))
   }
 
   static loadConfigAndUpdateDocument() {
     const config = {
       gcpClientId: localStorage.gcpClientId || "224829437062-cfk51jtehv7mbeq5i60uf82n11s343rr.apps.googleusercontent.com",
-      gcpProjectId: localStorage.gcpProjectId || "award-man-218722",
-      gcfFunctionName: localStorage.gcfFunctionName || "award-man",
+      gcpProjectId: localStorage.gcpProjectId || "awardwiz-218722",
+      gcfFunctionName: localStorage.gcfFunctionName || "awardwiz",
       gcfProjectLocation: localStorage.gcfProjectLocation || "us-central1",
       proxyUrl: localStorage.proxyUrl || "",
       aeroplanUsername: localStorage.aeroplanUsername || "",

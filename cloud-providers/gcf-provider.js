@@ -1,4 +1,4 @@
-// Google Cloud Functions provider for AwardMan
+// Google Cloud Functions provider for AwardWiz
 //
 // In order to run Functions on an end-user's account, they must:
 //   1. Create a Google Cloud Platform account on https://console.cloud.google.com

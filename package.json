@@ -1,7 +1,7 @@
 {
-  "name": "award-man",
+  "name": "awardwiz",
   "version": "1.0.0",
-  "description": "Search for mileage awards on United",
+  "description": "Search for mileage awards on multiple airlines",
   "main": "README.md",
   "license": "MIT",
   "scripts": {

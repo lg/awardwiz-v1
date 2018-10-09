@@ -1,13 +1,13 @@
-**AwardMan**
-  Search for mileage awards on United
+**AwardWiz**
+  Search for mileage awards on multiple airlines
 
-![Screenshot](https://raw.githubusercontent.com/lg/award-man/master/screenshot.png)
+![Screenshot](https://raw.githubusercontent.com/lg/awardwiz/master/screenshot.png)
 
 *Current status*:
   Actor uploading is automatic now, runs query for SFO-YOW, returns raw results. Needs to integrate parsing and cleanup of results into main flow.
 
 *How this works*:
-  Really it's quite simple, but unusual. Basically all the code that's run is controllable from the client side. AwardMan will create "actors" (aka lambdas) on Apify to scrape different airline mileage award websites (in `apify-runner.js`). This makes things fast and parallelizable. When you 'prep' the system, it'll upload any changes you made to the `scrapers/*.js` files to Apify. Then when you run things, it simply calls the actor with the params you entered which does the cloud scraping and returns the results to `award-man.js` which controls everything.
+  Really it's quite simple, but unusual. Basically all the code that's run is controllable from the client side. AwardWiz will create "actors" (aka lambdas) on Apify to scrape different airline mileage award websites (in `apify-runner.js`). This makes things fast and parallelizable. When you 'prep' the system, it'll upload any changes you made to the `scrapers/*.js` files to Apify. Then when you run things, it simply calls the actor with the params you entered which does the cloud scraping and returns the results to `awardwiz.js` which controls everything.
 
 *Make sure to have installed*:
   - SublimeText 3 plugins:

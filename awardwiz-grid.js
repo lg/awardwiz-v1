@@ -1,6 +1,6 @@
 const PAGINATION_SIZE = 100
 
-export default class AwardManGrid {
+export default class AwardWizGrid {
   constructor(onRowClicked) {
     this.grid = null
     this.onRowClicked = onRowClicked
