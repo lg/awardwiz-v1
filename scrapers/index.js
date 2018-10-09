@@ -63,6 +63,11 @@ const instrumentConsole = async toRun => {
 const gcfEntryWithCORS = async(req, res) => {
   console.log(`Welcome! Request is: ${JSON.stringify(req.body)}`)
 
+  if (req.body && req.body.hashCheck) {
+    res.status(200).send({hashCheck: "{{HASH_CHECK_AUTO_REPLACE}}"})
+    return
+  }
+
   await startProxyServer(req.body.proxy)
   await startPuppeteer(req.body.headless)
 

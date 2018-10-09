@@ -81,22 +81,20 @@ export default class GCFProvider {
     })
   }
 
-  async waitForOperation(opName, attemptDelayMs, maxAttempts) {
+  async waitFor(attemptDelayMs, maxAttempts, toRun) {
     const delay = ms => new Promise(res => setTimeout(res, ms))
-
     for (let loopNo = 0; loopNo < maxAttempts; loopNo += 1) {
       /* eslint-disable no-await-in-loop */
-      await delay(attemptDelayMs)
+      const result = await toRun()
+      if (result)
+        return result
 
-      const op = await gapi.client.cloudfunctions.operations.get({name: opName})
-      if (op.result.done) {
-        if (op.result.error)
-          throw new Error(op.result.error.message)
-        return op.result.response
-      }
+      // Do the delay every time but the last loop
+      if (loopNo < maxAttempts - 1)
+        await delay(attemptDelayMs)
       /* eslint-enable no-await-in-loop */
     }
-    throw new Error(`Timeout waiting for operation ${opName}`)
+    throw new Error("Timeout waiting for result")
   }
 
   async prep() {
@@ -111,15 +109,18 @@ export default class GCFProvider {
     }
 
     console.log("Prepping package...")
+    const fileContents = {}
+    await Promise.all(this.config.files.map(async filename => {
+      fileContents[filename] = await fetch(`${this.config.filesDir}/${filename}`).then(result => result.text())
+    }))
+    const filesHash = SparkMD5.hash(this.config.files.map(filename => fileContents[filename]).join("")).substr(0, 5)
+
     const zip = new JSZip()
-    const md5 = new SparkMD5()
-    for await (const file of this.config.files) {
-      const scraperCode = await fetch(`${this.config.filesDir}/${file}`).then(result => result.text())
-      zip.file(file, scraperCode)
-      md5.append(scraperCode)
-    }
+    this.config.files.forEach(filename => {
+      const contents = filename === "index.js" ? fileContents[filename].replace("{{HASH_CHECK_AUTO_REPLACE}}", filesHash) : fileContents[filename]
+      zip.file(filename, contents)
+    })
     const zipFile = await zip.generateAsync({type: "blob"})
-    const filesHash = md5.end().substr(0, 5)
 
     console.log("Getting if GCF has up to date scrapers...")
     let functionOnlyNeedsPatch = false
@@ -163,17 +164,28 @@ export default class GCFProvider {
     } else {
       operationResp = await gapi.client.cloudfunctions.projects.locations.functions.create({location: this.location, resource: funcParams})
     }
-    const operationName = operationResp.result.name
 
-    console.log("Waiting for function to be ready...")
-    await this.waitForOperation(operationName, 5000, 12 * 5)    // 5 mins timeout
+    console.log("Waiting for function to be uploaded...")
+    await this.waitFor(5000, 12 * 5, async() => {         // 5 mins timeout
+      const op = await gapi.client.cloudfunctions.operations.get({name: operationResp.result.name})
+      if (op.result.done) {
+        if (op.result.error)
+          throw new Error(op.result.error.message)
+        return op.result.response
+      }
+      return null
+    })
+
+    console.log("Waiting for function to be live...")
+    await this.waitFor(5000, 12 * 5, async() => {         // 5 mins timeout
+      const out = await this.run({hashCheck: true})
+      return out.hashCheck === filesHash ? true : null
+    })
 
     console.log("Ready!")
   }
 
   async run(params) {
-    const respRaw = await fetch(this.functionUrl, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(params)})
-    const out = await respRaw.json()
-    return out
+    return fetch(this.functionUrl, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(params)}).then(result => result.json())
   }
 }

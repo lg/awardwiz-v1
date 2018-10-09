@@ -85,7 +85,8 @@ export default class AwardWiz {
       statusDiv.innerHTML = `${scraperParams.scraper} -
         ${result.scraperResult.searchResults.length} result(s) -
         <a href="data:image/jpeg;base64,${result.screenshot}">show screenshot</a>
-        <a href="data:text/plain;base64,${btoa(consoleLog)}">show log</a> (right click to open)`
+        <a href="data:text/plain;base64,${btoa(consoleLog)}">show log</a>
+        <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}">show result</a> (right click to open)`
 
       // Append results to existing results w/ serice name
       allResults = allResults.concat(result.scraperResult.searchResults.map(searchResult => {
