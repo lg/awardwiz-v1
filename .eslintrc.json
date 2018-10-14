@@ -42,6 +42,8 @@
     "capitalized-comments": "off",        // these three are so i can comment out code to debug
     "spaced-comment": "off",              // these three are so i can comment out code to debug
     "multiline-comment-style": "off",     // these three are so i can comment out code to debug
+    "sort-imports": "off",                // it really doesnt add value
+    "valid-jsdoc": "off",                 // not ready for this yet
     "quote-props": ["error", "consistent-as-needed"],               // properties are symbols, not strings
     "arrow-parens": ["error", "as-needed"],                         // keep clean without brackets everywhere
     "no-extra-parens": ["error", "all", { "returnAssign": false }], // i want a one-line addeventlistener with arrow function
@@ -63,6 +65,9 @@
     "class-methods-use-this": "off",      // can't be in the middle of writing code with this on
     "no-inline-comments": "off",          // this is fine
     "line-comment-position": "off",       // sometimes you just need to describe whats going on
-    "require-await": "off"
+    "require-await": "off",
+
+    // for prod
+    "no-empty-function": "off"
   }
 }

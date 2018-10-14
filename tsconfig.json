@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+
+    //"strict": true,
+
+    "module":"es2015",
+    "target": "es2018"
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
