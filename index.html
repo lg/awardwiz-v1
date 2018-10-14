@@ -3,16 +3,26 @@
   <link rel="shortcut icon" href="#" />
 
   <script src="https://unpkg.com/ag-grid/dist/ag-grid.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aws-sdk/2.334.0/aws-sdk.min.js" async defer></script>
 </head>
 
 Open Console (⌥-⌘-C) to view status<br/><br/>
+<!--
 <label for="gcpClientId">GCP Client ID: </label><input type="text" id="gcpClientId" value=""/><br/>
 <label for="gcpProjectId">GCP Project ID: </label><input type="text" id="gcpProjectId" value=""/><br/>
 <div style="font-size:8pt">(reload the page if you change either of the two above)</div>
 <div id="googleSignIn" style="height: 20px"></div><div id="googleSignOut" style="height: 20px" hidden><button>Sign out</button></div>
 <br/>
 <label for="gcfProjectLocation">GCF Project Location: </label><input type="text" id="gcfProjectLocation" value=""/><br/>
-<label for="gcfFunctionName">GCF Function Name: </label><input type="text" id="gcfFunctionName" value=""/><br/>
+-->
+
+<label for="awsAccessKey">AWS Access Key: </label><input type="text" id="awsAccessKey" value=""/><br/>
+<label for="awsSecretAccessKey">AWS Secret Access Key: </label><input type="text" id="awsSecretAccessKey" value=""/><br/>
+<label for="awsRegionZone">AWS Region Zone: </label><input type="text" id="awsRegionZone" value=""/><br/>
+<label for="awsLambdaRoleArn">AWS Lambda Role ARN: </label><input type="text" id="awsLambdaRoleArn" value=""/><br/>
+<br/>
+
+<label for="functionName">Function Name: </label><input type="text" id="functionName" value=""/><br/>
 <br/>
 <label for="proxyUrl">Proxy URL: </label><input type="text" id="proxyUrl" value=""/><br/>
 <br/>
