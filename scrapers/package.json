@@ -12,8 +12,9 @@
     }
   },
   "dependencies": {
-    "puppeteer": "^1.8.0",
+    "chrome-aws-lambda": "^1.7.0",
     "cors": "^2.8.4",
-    "proxy-chain": "^0.2.5"
+    "proxy-chain": "^0.2.5",
+    "puppeteer-core": "^1.7.0"
   }
 }

@@ -61,11 +61,19 @@ export class CloudProvider {
       console.log("Up to date!")
     } else if (existingFunctionHash === null) {
       console.log("Doesn't exist, creating it...")
-      this.stepCreateFunction(zipFile, filesHash)
+      await this.stepCreateFunction(zipFile, filesHash)
     } else {
       console.log("Exists, but outdated, updating it...")
-      this.stepUpdateFunction(zipFile, filesHash)
+      await this.stepUpdateFunction(zipFile, filesHash)
     }
+
+    await this.run({hashCheck: true})
+
+    // console.log("Waiting for function to be live...")
+    // await this.waitFor(5000, 12 * 5, async() => {         // 5 mins timeout
+    //   const out = await this.run({hashCheck: true})
+    //   return out.hashCheck === filesHash ? true : null
+    // })
   }
 
   ///// private
@@ -82,10 +90,33 @@ export class CloudProvider {
       const contents = filename === "index.js" ? fileContents[filename].replace("{{HASH_CHECK_AUTO_REPLACE}}", filesHash) : fileContents[filename]
       zip.file(filename, contents)
     })
-    const zipFile = await zip.generateAsync({type: "arraybuffer"})       ////// NOTE WAS CHANGED
+
+    zip.file("node_modules", "/tmp/node_modules", {
+      // see https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/stat.h#n10
+      // 0120000 for the symlink, 0755 for the permissions : 0120755 == 41453 (your example)
+      unixPermissions: parseInt("120755", 8)
+    })
+
+// /tmp/modules/node_modules
+
+    const zipFile = await zip.generateAsync({type: "arraybuffer", platform: "UNIX"})       ////// NOTE WAS CHANGED
 
     return {filesHash, zipFile}
   }
 
+  async waitFor(attemptDelayMs, maxAttempts, toRun) {
+    const delay = ms => new Promise(res => setTimeout(res, ms))
+    for (let loopNo = 0; loopNo < maxAttempts; loopNo += 1) {
+      /* eslint-disable no-await-in-loop */
+      const result = await toRun()
+      if (result)
+        return result
 
+      // Do the delay every time but the last loop
+      if (loopNo < maxAttempts - 1)
+        await delay(attemptDelayMs)
+      /* eslint-enable no-await-in-loop */
+    }
+    throw new Error("Timeout waiting for result")
+  }
 }

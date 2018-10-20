@@ -113,7 +113,7 @@ export default class AwardWiz {
     console.log("Starting search...")
     await Promise.all([
       runScraper({scraper: "united", proxy: this.config.proxyUrl, params: searchParams}),
-      runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})})
+      //runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})})
     ])
 
     console.log("Completed search.")
