@@ -1,5 +1,35 @@
 exports.scraperMain = async(page, input) => {
   console.log("Getting United cookie...")
+  //await page.setJavaScriptEnabled(false)
+
+
+  await page.setRequestInterception(true)
+  page.on('request', interceptedRequest => {
+    console.log("INTERCEPT: " + interceptedRequest.url())
+
+    var blocked = ["ual_check", "abmr", "clientdata", "ensighten"]
+
+    var blockit = false
+    blocked.forEach(text => {
+      if (interceptedRequest.url().indexOf(text) > -1) {
+        blockit = true
+      }
+    })
+
+    if (blockit) {
+      console.log("CANCEL")
+      interceptedRequest.abort()
+
+    } else {
+      console.log("OK")
+      interceptedRequest.continue();
+    }
+
+
+  });
+
+
+
   await page.goto("https://www.united.com/ual/en/us/flight-search/book-a-flight")
 
   console.log("Searching for flights...")
@@ -12,10 +42,14 @@ exports.scraperMain = async(page, input) => {
   else if (input.maxConnections === 1)
     maxConnectionsCode = 3
 
+  //await page.setJavaScriptEnabled(true)
+
+
   await page.goto(`https://www.united.com/ual/en/us/flight-search/book-a-flight/results/awd?f=${input.from}&t=${input.to}&d=${input.date}&tt=1&at=1&sc=${maxConnectionsCode}&px=1&taxng=1&idx=1`)
 
+
   console.log("Waiting for JSON results...")
-  const response = await page.waitForResponse("https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/awd")
+  const response = await page.waitForResponse("https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/awd", {timeout: 90000})
   const raw = await response.json()
 
   console.log("Parsing results...")

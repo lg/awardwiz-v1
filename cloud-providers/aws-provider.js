@@ -1,6 +1,4 @@
 // AWS Lambda provider for AwardWiz
-//
-// - Create an ARN using the default lambda template
 
 /* global AWS */
 
@@ -57,14 +55,24 @@ export default class AWSProvider extends CloudProvider {
       ZipFile: zipFile,
       Publish: true
     }).promise()
-    await this.lambda.updateFunctionConfiguration({
-      ...this.commonFunctionConfig(filesHash),
-      FunctionName: this.config.functionName,
-      Description: filesHash
-    })
+    await this.lambda.updateFunctionConfiguration(this.commonFunctionConfig(filesHash)).promise()
   }
 
   async run(params) {
+    const response = await this.lambda.invoke({
+      FunctionName: this.config.functionName,
+      Payload: JSON.stringify(params)
+    }).promise()
+    const payload = JSON.parse(response.Payload)
+
+
+    console.dir(payload)
+    //if (payload.errorType === "Error")
+     // debugger
+
+    //const result = JSON.parse(rawResult)
+    //debugger
+    return payload
   }
 
   // private
