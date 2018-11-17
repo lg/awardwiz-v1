@@ -61,10 +61,10 @@ export class CloudProvider {
       console.log("Up to date!")
     } else if (existingFunctionHash === null) {
       console.log("Doesn't exist, creating it...")
-      this.stepCreateFunction(zipFile, filesHash)
+      await this.stepCreateFunction(zipFile, filesHash)
     } else {
       console.log("Exists, but outdated, updating it...")
-      this.stepUpdateFunction(zipFile, filesHash)
+      await this.stepUpdateFunction(zipFile, filesHash)
     }
   }
 

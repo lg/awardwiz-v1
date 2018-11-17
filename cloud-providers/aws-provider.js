@@ -53,6 +53,7 @@ export default class AWSProvider extends CloudProvider {
 
   async stepUpdateFunction(zipFile, filesHash) {
     await this.lambda.updateFunctionCode({
+      FunctionName: this.config.functionName,
       ZipFile: zipFile,
       Publish: true
     }).promise()
