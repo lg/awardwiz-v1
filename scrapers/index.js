@@ -32,7 +32,7 @@ exports.awsEntry = async(event, context) => {
   execSync("cp -f /var/task/package.json /tmp && cd /tmp && npm install")
 
 //
-/*
+
 let result = null;
   let browser = null;
 
@@ -45,6 +45,10 @@ let result = null;
         ...chromium.args,
         "--enable-logging=stderr",
         "--v=1",
+
+        "--disable-software-rasterizer",
+        "--disable-gpu"
+
         // "--password-store=basic",
         // "--disable-extensions",
         // "--disable-gpu"
@@ -62,7 +66,7 @@ let result = null;
     await page.setUserAgent((await browser.userAgent()).replace("HeadlessChrome", "Chrome"))
 
 
-
+/*
   await page.setRequestInterception(true)
   page.on('request', interceptedRequest => {
     console.log("INTERCEPT: " + interceptedRequest.url())
@@ -87,11 +91,12 @@ let result = null;
 
 
   });
+*/
 
 
-    //await page.setJavaScriptEnabled(false)
 
 
+    //await page.goto('https://www.united.com')
     await page.goto('https://www.united.com')
 
     result = await page.title();
@@ -104,11 +109,11 @@ let result = null;
   // }
 
   return context.succeed(result);
-
-*/
+/*
+*//*
   const response = await handleRequest(event)
 
-  return context.succeed(response)
+  return context.succeed(response)*/
 }
 
 /////////////////

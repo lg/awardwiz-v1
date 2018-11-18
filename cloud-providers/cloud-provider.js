@@ -67,6 +67,8 @@ export class CloudProvider {
       await this.stepUpdateFunction(zipFile, filesHash)
     }
 
+    console.log("Running it...")
+    console.log("Running it...")
     await this.run({hashCheck: true})
 
     // console.log("Waiting for function to be live...")
