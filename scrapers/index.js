@@ -32,6 +32,7 @@ exports.awsEntry = async(event, context) => {
   execSync("cp -f /var/task/package.json /tmp && cd /tmp && npm install")
 
 //
+/*
 
 let result = null;
   let browser = null;
@@ -65,7 +66,7 @@ let result = null;
     let page = await browser.newPage();
     await page.setUserAgent((await browser.userAgent()).replace("HeadlessChrome", "Chrome"))
 
-
+/*
 /*
   await page.setRequestInterception(true)
   page.on('request', interceptedRequest => {
@@ -91,7 +92,7 @@ let result = null;
 
 
   });
-*/
+
 
 
 
@@ -110,10 +111,10 @@ let result = null;
 
   return context.succeed(result);
 /*
-*//*
-  const response = await handleRequest(event)
+*/
 
-  return context.succeed(response)*/
+  const response = await handleRequest(event)
+  return context.succeed(response)
 }
 
 /////////////////
@@ -152,9 +153,12 @@ const startPuppeteer = async headless => {
       args: [
         ...chromeAwsLambda.args,
         "--proxy-server=http://127.0.0.1:8203",
-        "--disable-accelerated-2d-canvas",
-        "--disable-gpu",
-        "--disable-setuid-sandbox"
+        //"--disable-accelerated-2d-canvas",
+        //"--disable-gpu",
+        //"--disable-setuid-sandbox"
+
+        "--disable-software-rasterizer",
+        "--disable-gpu"
 
         //"--disable-gpu",
         //"--disable-accelerated-2d-canvas"
@@ -193,8 +197,8 @@ const startPuppeteer = async headless => {
 
       ],*/
       executablePath: await chromeAwsLambda.executablePath,  //"/tmp/headless_shell"
-      headless: chromeAwsLambda.headless, // true
-      dumpio: true
+      headless: chromeAwsLambda.headless //, // true
+      //dumpio: true
     })
 
     // } else {

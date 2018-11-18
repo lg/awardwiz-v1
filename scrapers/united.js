@@ -3,7 +3,7 @@ exports.scraperMain = async(page, input) => {
   //await page.setJavaScriptEnabled(false)
 
 
-  await page.setRequestInterception(true)
+  /*await page.setRequestInterception(true)
   page.on('request', interceptedRequest => {
     console.log("INTERCEPT: " + interceptedRequest.url())
 
@@ -26,7 +26,7 @@ exports.scraperMain = async(page, input) => {
     }
 
 
-  });
+  });*/
 
 
 
