@@ -63,16 +63,8 @@ export default class AWSProvider extends CloudProvider {
       FunctionName: this.config.functionName,
       Payload: JSON.stringify(params)
     }).promise()
-    const payload = JSON.parse(response.Payload)
 
-
-    console.dir(payload)
-    //if (payload.errorType === "Error")
-     // debugger
-
-    //const result = JSON.parse(rawResult)
-    //debugger
-    return payload
+    return JSON.parse(response.Payload)
   }
 
   // private

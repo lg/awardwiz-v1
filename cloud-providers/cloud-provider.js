@@ -67,14 +67,11 @@ export class CloudProvider {
       await this.stepUpdateFunction(zipFile, filesHash)
     }
 
-    console.log("Running it...")
-    await this.run({hashCheck: true})
-
-    // console.log("Waiting for function to be live...")
-    // await this.waitFor(5000, 12 * 5, async() => {         // 5 mins timeout
-    //   const out = await this.run({hashCheck: true})
-    //   return out.hashCheck === filesHash ? true : null
-    // })
+    console.log("Waiting for function to be live...")
+    await this.waitFor(5000, 12 * 5, async() => {         // 5 mins timeout
+      const out = await this.run({hashCheck: true})
+      return out.hashCheck === filesHash ? true : null
+    })
   }
 
   ///// private
@@ -92,15 +89,14 @@ export class CloudProvider {
       zip.file(filename, contents)
     })
 
+    // We unzip a symlink since we cannot write to the directory at runtime
     zip.file("node_modules", "/tmp/node_modules", {
       // see https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/stat.h#n10
       // 0120000 for the symlink, 0755 for the permissions : 0120755 == 41453 (your example)
       unixPermissions: parseInt("120755", 8)
     })
 
-// /tmp/modules/node_modules
-
-    const zipFile = await zip.generateAsync({type: "arraybuffer", platform: "UNIX"})       ////// NOTE WAS CHANGED
+    const zipFile = await zip.generateAsync({type: "arraybuffer", platform: "UNIX"})  // platform UNIX to allow symlinks
 
     return {filesHash, zipFile}
   }

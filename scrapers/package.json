@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "chrome-aws-lambda": "^1.10.0",
-    "cors": "^2.8.4",
     "proxy-chain": "^0.2.5",
     "puppeteer-core": "^1.10.0"
   }
