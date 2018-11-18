@@ -15,10 +15,8 @@ exports.scraperMain = async(page, input) => {
   await page.goto(`https://www.united.com/ual/en/us/flight-search/book-a-flight/results/awd?f=${input.from}&t=${input.to}&d=${input.date}&tt=1&at=1&sc=${maxConnectionsCode}&px=1&taxng=1&idx=1`)
 
   console.log("Waiting for JSON results...")
-  const response = await page.waitForResponse("https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/awd")
+  const response = await page.waitForResponse("https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/awd", {timeout: 90000})
   const raw = await response.json()
-
-  console.log("Parsing results...")
   const standardizedResults = standardizeResults(raw.data.Trips[0], input.maxConnections)
 
   console.log("Done.")

@@ -3,56 +3,35 @@
 
 ![Screenshot](https://raw.githubusercontent.com/lg/awardwiz/master/screenshot.png)
 
-*Current status*:
-  Actor uploading is automatic now, runs query for SFO-YOW, returns raw results. Needs to integrate parsing and cleanup of results into main flow.
+*Background*:
+  Generally, finding flights to spend points/miles is incredibly difficult due to the seemingly random availability of award flights. Though it's most practical to manually search just one or two airlines' websites, there are often many more options actually available, and some quite a bit cheaper and better! Automation is therefore necessary to do all the permutations of airlines/dates/routes/classes so we can be sure we're getting the best deal. Additionally, the websites for these airlines change a lot, so keeping things opensource is important.
 
 *How this works*:
-  Really it's quite simple, but unusual. Basically all the code that's run is controllable from the client side. AwardWiz will create "actors" (aka lambdas) on Apify to scrape different airline mileage award websites (in `apify-runner.js`). This makes things fast and parallelizable. When you 'prep' the system, it'll upload any changes you made to the `scrapers/*.js` files to Apify. Then when you run things, it simply calls the actor with the params you entered which does the cloud scraping and returns the results to `awardwiz.js` which controls everything.
+  AwardWiz uses AWS Lambda functions to spin off a bunch of scrapers for the different award programs for a given airline routing. These scrapers are in the `scrapers` directory. The cloud providers can be found in the `cloud-providers` (though only AWS is supported for now). The frontend static HTML/Javascript is where all the logic and signalling as to which lambdas to run resides.
 
-*Make sure to have installed*:
-  - SublimeText 3 plugins:
-    Package Control, SublimeLinter, SublimeLinter-eslint, JavaScriptNext - ES6 Syntax
-  - eslint (via npm)
+  As there is no server-side "backend", this entire project is just a static website which takes heavy advantage of CORS calls to the user's cloud provider to create the functions necessary. No asset pipelines or frameworks are used, and when external libraries are, they're included with `<script>` tags. Using cloud functions is quite beneficial in that you could theoretically spin up hundreds all at once in minimal time/cost. Currently the way the functions work is that when run, they will download the node modules first on the lambda side, and then continue execution. Since cloud platforms cache these environments, the `npm install` process isnt as laborous the second time around.
 
-*Getting started*:
-  1. Create an Apify account and get your token from [here](https://my.apify.com/account#/integrations)
+  The point of this setup is so that anybody can host this scaleable service just about anywhere, and users can hook up their own cloud at runtime so costs go straight to the end-user. For convenience, you can try it out at https://awardwiz.com -- that's always `master` from the Github code being pulled live via Netlify.
+
+*Getting started locally*:
+  1. Git clone this repo
   2. Start a local server with this code using `python -m SimpleHTTPServer`
-  3. Open a browser at http://127.0.0.1:8000/ and open the Dev Console
-  4. Enter your token and other info into the website
-  5. Hit the 'prep' button to upload the actors
-  6. Play around!
+  3. Open a browser at http://localhost:8000/ and open the Dev Console
+  4. Fill out the requested info and click the "prep" button
+  5. If that succeeds, change the search params and click the "search" button to your heart's content!
 
-*TODO*:
-  - publish the united parser and and have an option to just use that directly
-  - split off CORS lambda runner into its own lib
+*Developing*
+  Basically you just edit the HTML and Javascript files directly, but consider running `yarn` locally to make sure stuff like eslint is installed and working. Optionally running `yarn test` will run tests locally, which is also a great way of debugging via a real chrome for those pesky airline websites. TODO: instructions how to do this.
 
-*Vision*:
+*Future*:
+  - add GCP, Apify and other cloud function providers
   - add Delta, Aeroplan and many more award providers
   - auto pull in points from AwardWallet
   - auto generate routes here instead of using the airlines (since we're smarter)
+  - auto select airlines based on AwardHacker data
   - suggest which airlines to get more miles onto (i.e. "you could have saved X miles if you had these kinds of miles")
   - auto calculate cost savings
   - parallel requests to scan all possibilities
-
-*Appendix*:
-
-Actors
-  - As input they expect:
-    - _proxyUrl_: (optional) a url to use as a proxy server for scraping
-    - _from_: the IATA code for the airport you're flying from
-    - _to_: the IATA code for the airport you're flying to
-    - _date_: the date on which you're flying (YYYY-MM-DD)
-    - _maxConnections_: (optional) maximum airport connections (default 2)
-  - Returns an array of:
-    - _flights_: ex. `UA1234,AC223,SQ1`
-    - _fromDateTime_: ex. `08/31/2018 23:45`
-    - _toDateTime_: ex. `09/01/2018 05:29`
-    - _fromAirport_: ex. `SFO`
-    - _toAirport_: ex. `YOW`
-    - _costs_: map of following:
-      - _economy_: map of: _miles_ (in miles), and _dollars_ (in USD)
-      - _business_: map of: _miles_ (in miles), and _dollars_ (in USD)
-      - _first_: map of: _miles_ (in miles), and _dollars_ (in USD)
 
 *References*
   - https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md

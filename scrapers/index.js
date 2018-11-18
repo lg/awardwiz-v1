@@ -1,17 +1,41 @@
-const puppeteer = require("puppeteer")
-const cors = require("cors")
-const proxyChain = require("proxy-chain")
+/* eslint-disable */
+
+const process = require("process")
+const {execSync} = require("child_process")
+
+// Modules are loaded at runtime because sometimes the node modules still
+// need to be generated (ex. AWS)
+let puppeteer = null
+let chromeAwsLambda = null
+let proxyChain = null
 
 // Used for caching incase the runner doesn't throw away our environment
 let browser = null
 let proxyServer = null
+
+exports.awsEntry = async(event, context) => {
+  // AWS doesn't pre-package modules, as such, download them and install
+  // to /tmp/node_modules. Note: make sure the uploaded zip has a symlink
+  // of "node_modules" to "/tmp/node_modules". Also note: AWS will cache
+  // the node_modules if the lambda is run a bunch.
+  process.env.HOME = "/tmp"
+  execSync("cp -f /var/task/package.json /tmp && cd /tmp && npm install")
+
+  const response = await handleRequest(event)
+  return context.succeed(response)
+}
+
+/////////////////
 
 const startProxyServer = async proxyUrl => {
   // The proxy server will always run, but it won't go through any external server unless enabled
   // with a 'proxy' attribute in the request body. Running our own proxy server is necessary because
   // Puppeteer doesn't allow us to pass in a username/password for proxy auth, plus we want
   // per-context/per-auth proxies to benefit from re-using the already-running Chromium.
-  proxyServer = proxyServer || new proxyChain.Server({port: 8203})
+  if (!proxyServer) {
+    proxyChain = proxyChain || require("proxy-chain")
+    proxyServer = new proxyChain.Server({port: 8203})
+  }
   proxyServer.prepareRequestFunction = () => {
     return {upstreamProxyUrl: proxyUrl || null, requestAuthentication: false}
   }
@@ -23,20 +47,21 @@ const startPuppeteer = async headless => {
   if (!browser) {
     console.log("Launching new Puppeteer...")
 
-    // Using these params for faster launch as per https://github.com/GoogleChrome/puppeteer/issues/3120
-    // eslint-disable-next-line require-atomic-updates
+    chromeAwsLambda = chromeAwsLambda || require("chrome-aws-lambda")
+    puppeteer = puppeteer || require('puppeteer-core')
+
     browser = await puppeteer.launch({
       args: [
+        ...chromeAwsLambda.args,
         "--proxy-server=http://127.0.0.1:8203",
-        "--no-sandbox",               // required for gcf
-        "--disable-dev-shm-usage",
-        "--no-zygote",
-        "--disable-accelerated-2d-canvas",
-        "--disable-gpu",
-        "--disable-setuid-sandbox",
-        "--no-first-run"
+
+        // Necessary for loading certain websites (ex. united.com)
+        "--disable-software-rasterizer",
+        "--disable-gpu"
       ],
-      headless: typeof headless === "undefined" ? true : headless
+
+      executablePath: await chromeAwsLambda.executablePath,
+      headless: chromeAwsLambda.headless
     })
   }
 }
@@ -60,32 +85,29 @@ const instrumentConsole = async toRun => {
   return fullConsoleLog
 }
 
-const gcfEntryWithCORS = async(req, res) => {
-  console.log(`Welcome! Request is: ${JSON.stringify(req.body)}`)
+const handleRequest = async params => {
+  console.log(`Welcome! Request is: ${JSON.stringify(params)}`)
 
-  if (req.body && req.body.hashCheck) {
-    res.status(200).send({hashCheck: "{{HASH_CHECK_AUTO_REPLACE}}"})
-    return
+  if (params && params.hashCheck) {
+    return {hashCheck: "{{HASH_CHECK_AUTO_REPLACE}}"}
   }
 
-  await startProxyServer(req.body.proxy)
-  await startPuppeteer(req.body.headless)
+  console.log("Starting proxy and Chromium...")
+  await startProxyServer(params.proxy)
 
-  // Using a context is important to disallow caching between requests (esp if using different proxies)
-  console.log("Creating new Puppeteer context...")
-  const context = await browser.createIncognitoBrowserContext()
-  const page = await context.newPage()
+  await startPuppeteer(params.headless)
+  const page = await browser.newPage()
 
   await page.setUserAgent((await browser.userAgent()).replace("HeadlessChrome", "Chrome"))
   await page.setDefaultNavigationTimeout(90000)
 
-  console.log(`Launching scraper '${req.body.scraper}'...`)
-  const scraper = require(`./${req.body.scraper}.js`)             // eslint-disable-line global-require
+  console.log(`Launching scraper '${params.scraper}'...`)
+  const scraper = require(`./${params.scraper}.js`)             // eslint-disable-line global-require
 
   const response = {}
   response.consoleLog = await instrumentConsole(async() => {
     try {
-      response.scraperResult = await scraper.scraperMain(page, req.body.params)
+      response.scraperResult = await scraper.scraperMain(page, params.params)
     } catch (err) {
       console.error(err)
       response.error = err
@@ -95,19 +117,14 @@ const gcfEntryWithCORS = async(req, res) => {
   response.screenshot = await page.screenshot({type: "jpeg", quality: 90, fullPage: true, encoding: "base64"})
 
   console.log("Closing context...")
-  await context.close()
+  await browser.close()
 
-  res.status(response.error ? 500 : 200).send(response)
-}
-
-exports.gcfEntry = async(req, res) => {
-  const corsMiddleware = cors()
-  await corsMiddleware(req, res, () => gcfEntryWithCORS(req, res))
+  return response
 }
 
 // Used by the test suite
 exports.instrumentConsole = instrumentConsole
-exports.gcfEntryWithCORS = gcfEntryWithCORS
+exports.handleRequest = handleRequest
 exports.shutdown = async() => {
   if (proxyServer) {
     await proxyServer.close(true)

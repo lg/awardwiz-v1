@@ -1,24 +1,23 @@
 import AwardWizGrid from "./awardwiz-grid.js"
-import GCFProvider from "./cloud-providers/gcf-provider.js"
+import AWSProvider from "./cloud-providers/aws-provider.js"
 
 export default class AwardWiz {
   constructor() {
     this.config = AwardWiz.loadConfigAndUpdateDocument()
 
     this.united = null
-    this.gcf = new GCFProvider({
+    this.cloud = new AWSProvider({
       files: ["united.js", "aeroplan.js", "index.js", "package.json"],
       filesDir: "scrapers",
-      authSignInDivId: "googleSignIn",
-      authSignOutDivId: "googleSignOut",
 
-      clientId: this.config.gcpClientId,
-      projectId: this.config.gcpProjectId,
+      accessKey: this.config.awsAccessKey,
+      secretAccessKey: this.config.awsSecretAccessKey,
+      regionZone: this.config.awsRegionZone,
+      lambdaRoleArn: this.config.awsLambdaRoleArn,
 
-      projectLocation: this.config.gcfProjectLocation,
-      functionName: this.config.gcfFunctionName
+      functionName: this.config.functionName
     })
-    this.gcf.initOnPage()
+    this.cloud.initOnPage()
 
     this.grid = new AwardWizGrid(AwardWiz.onRowClicked)
     this.grid.configureGrid(document.querySelector("#resultsGrid"))
@@ -26,10 +25,12 @@ export default class AwardWiz {
 
   static loadConfigAndUpdateDocument() {
     const config = {
-      gcpClientId: localStorage.gcpClientId || "224829437062-cfk51jtehv7mbeq5i60uf82n11s343rr.apps.googleusercontent.com",
-      gcpProjectId: localStorage.gcpProjectId || "awardwiz-218722",
-      gcfFunctionName: localStorage.gcfFunctionName || "awardwiz",
-      gcfProjectLocation: localStorage.gcfProjectLocation || "us-central1",
+      awsAccessKey: localStorage.awsAccessKey || "",
+      awsSecretAccessKey: localStorage.awsSecretAccessKey || "",
+      awsRegionZone: localStorage.awsRegionZone || "us-west-1a",
+      awsLambdaRoleArn: localStorage.awsLambdaRoleArn || "",
+
+      functionName: localStorage.functionName || "awardwiz",
       proxyUrl: localStorage.proxyUrl || "",
       aeroplanUsername: localStorage.aeroplanUsername || "",
       aeroplanPassword: localStorage.aeroplanPassword || "",
@@ -52,7 +53,7 @@ export default class AwardWiz {
   }
 
   async prep() {
-    await this.gcf.prep()
+    await this.cloud.prep()
     console.log("Prepped successfully.")
   }
 
@@ -77,7 +78,7 @@ export default class AwardWiz {
 
       // Wait for scraper results
       console.log(`Running scraper '${scraperParams.scraper}'...`)
-      const result = await this.gcf.run(scraperParams)
+      const result = await this.cloud.run(scraperParams)
       console.log(`Scraper '${scraperParams.scraper}' returned ${result.scraperResult.searchResults.length} result(s).`)
 
       // Individual status per scraper
@@ -99,7 +100,7 @@ export default class AwardWiz {
     console.log("Starting search...")
     await Promise.all([
       runScraper({scraper: "united", proxy: this.config.proxyUrl, params: searchParams}),
-      runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})})
+      //runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})})
     ])
 
     console.log("Completed search.")
