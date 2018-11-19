@@ -57,8 +57,10 @@ export class CloudProvider {
 
     console.log("Getting if cloud has up to date function...")
     const existingFunctionHash = await this.stepGetExistingFunctionHash(filesHash)
+    let functionUpdated = true
     if (existingFunctionHash === filesHash) {
       console.log("Up to date!")
+      functionUpdated = false
     } else if (existingFunctionHash === null) {
       console.log("Doesn't exist, creating it...")
       await this.stepCreateFunction(zipFile, filesHash)
@@ -67,11 +69,13 @@ export class CloudProvider {
       await this.stepUpdateFunction(zipFile, filesHash)
     }
 
-    console.log("Waiting for function to be live...")
-    await this.waitFor(5000, 12 * 5, async() => {         // 5 mins timeout
-      const out = await this.run({hashCheck: true})
-      return out.hashCheck === filesHash ? true : null
-    })
+    if (functionUpdated) {
+      console.log("Waiting for function to be live...")
+      await this.waitFor(5000, 12 * 5, async() => {         // 5 mins timeout
+        const out = await this.run({hashCheck: true})
+        return out.hashCheck === filesHash ? true : null
+      })
+    }
   }
 
   ///// private

@@ -36,17 +36,21 @@ exports.scraperMain = async(page, input) => {
   await page.keyboard.type(input.to)
   await waitAndClick("div[data-automation=one-way-to-location] div[data-selectable]")
 
+  console.log("Turning off 'Compare to AirCanada.com' options...")
+  await waitAndClick("#OneWayAirCanadaCompare1")
+
   console.log("Setting date (mm/dd/yyyy)...")
   const aeroplanDate = `${input.date.substr(5, 2)}/${input.date.substr(8, 2)}/${input.date.substr(0, 4)}`
   await page.type("div[data-automation=one-way-departure-date] #l1Oneway", aeroplanDate)
 
-  // Start search and wait for results
-  console.log("Starting search and waiting for results...")
-  const clickNav = page.waitForNavigation({waitUntil: "networkidle0"})
+  console.log("Starting search and waiting for results window...")
   await page.click("div[data-automation=one-way-submit] button")
-  const response = await page.waitForResponse("https://www.aeroplan.com/adr/Results_Ajax.jsp?searchType=oneway&forceIkk=false")
+  const newWindowTarget = await page.browser().waitForTarget(target => target.url() === "https://www.aeroplan.com/adr/Results.do")
+  const newPage = await newWindowTarget.page()
+
+  console.log("Waiting for results...")
+  const response = await newPage.waitForResponse("https://www.aeroplan.com/adr/Results_Ajax.jsp?searchType=oneway&forceIkk=false")
   const raw = await response.json()
-  await clickNav
 
   console.log("Parsing results...")
   const standardizedResults = standardizeResults(raw)

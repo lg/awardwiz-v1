@@ -79,12 +79,18 @@ export default class AwardWiz {
       // Wait for scraper results
       console.log(`Running scraper '${scraperParams.scraper}'...`)
       const result = await this.cloud.run(scraperParams)
-      console.log(`Scraper '${scraperParams.scraper}' returned ${result.scraperResult.searchResults.length} result(s).`)
+      if (result.scraperResult) {
+        console.log(`Scraper '${scraperParams.scraper}' returned ${result.scraperResult.searchResults.length} result(s).`)
+      } else {
+        console.log(`Scraper '${scraperParams.scraper}' errored.`)
+        result.scraperResult = {searchResults: []}
+      }
 
       // Individual status per scraper
       const consoleLog = result.consoleLog.map(item => `[${item.date}] ${item.type} - ${item.text}`.replace("T", " ").replace("Z", "")).join("\n")
+      const statusLine = result.error ? `Error: ${result.error.name}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "s" : ""}`
       statusDiv.innerHTML = `${scraperParams.scraper} -
-        ${result.scraperResult.searchResults.length} result(s) -
+        ${statusLine} -
         <a href="data:image/jpeg;base64,${result.screenshot}">show screenshot</a>
         <a href="data:text/plain;base64,${btoa(consoleLog)}">show log</a>
         <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}">show result</a> (right click to open)`
@@ -100,7 +106,7 @@ export default class AwardWiz {
     console.log("Starting search...")
     await Promise.all([
       runScraper({scraper: "united", proxy: this.config.proxyUrl, params: searchParams}),
-      //runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})})
+      runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})})
     ])
 
     console.log("Completed search.")
