@@ -3,6 +3,8 @@
 const process = require("process")
 const {execSync} = require("child_process")
 
+const platform = (process.env.LAMBDA_TASK_ROOT && process.env.AWS_EXECUTION_ENV) ? "aws" : "other"
+
 // Modules are loaded at runtime because sometimes the node modules still
 // need to be generated (ex. AWS)
 let puppeteer = null
@@ -10,7 +12,6 @@ let chromeAwsLambda = null
 let proxyChain = null
 
 // Used for caching incase the runner doesn't throw away our environment
-let browser = null
 let proxyServer = null
 
 exports.awsEntry = async(event, context) => {
@@ -19,10 +20,15 @@ exports.awsEntry = async(event, context) => {
   // of "node_modules" to "/tmp/node_modules". Also note: AWS will cache
   // the node_modules if the lambda is run a bunch.
   process.env.HOME = "/tmp"
+  process.env.NODE_ENV = "production"
   execSync("cp -f /var/task/package.json /tmp && cd /tmp && npm install")
 
   const response = await handleRequest(event)
   return context.succeed(response)
+}
+
+exports.debugEntry = async(params) => {
+  return await handleRequest(params)
 }
 
 /////////////////
@@ -44,26 +50,27 @@ const startProxyServer = async proxyUrl => {
 }
 
 const startPuppeteer = async headless => {
-  if (!browser) {
-    console.log("Launching new Puppeteer...")
+  console.log("Launching new Puppeteer...")
 
-    chromeAwsLambda = chromeAwsLambda || require("chrome-aws-lambda")
-    puppeteer = puppeteer || require('puppeteer-core')
+  chromeAwsLambda = chromeAwsLambda || require("chrome-aws-lambda")
+  puppeteer = puppeteer || chromeAwsLambda.puppeteer
 
-    browser = await puppeteer.launch({
-      args: [
-        ...chromeAwsLambda.args,
-        "--proxy-server=http://127.0.0.1:8203",
+  const browser = await puppeteer.launch({
+    args: [
+      ...chromeAwsLambda.args,
+      "--proxy-server=http://127.0.0.1:8203",
 
-        // Necessary for loading certain websites (ex. united.com)
-        "--disable-software-rasterizer",
-        "--disable-gpu"
-      ],
+      // Necessary for loading certain websites (ex. united.com)
+      "--disable-software-rasterizer",
+      "--disable-gpu"
+    ],
 
-      executablePath: await chromeAwsLambda.executablePath,
-      headless: chromeAwsLambda.headless
-    })
-  }
+    executablePath: await chromeAwsLambda.executablePath,
+    headless: chromeAwsLambda.headless,
+    devtools: platform === "other"
+  })
+
+  return browser
 }
 
 const instrumentConsole = async toRun => {
@@ -95,7 +102,7 @@ const handleRequest = async params => {
   console.log("Starting proxy and Chromium...")
   await startProxyServer(params.proxy)
 
-  await startPuppeteer(params.headless)
+  const browser = await startPuppeteer(params.headless)
   const page = await browser.newPage()
 
   await page.setUserAgent((await browser.userAgent()).replace("HeadlessChrome", "Chrome"))
@@ -116,7 +123,7 @@ const handleRequest = async params => {
 
   response.screenshot = await page.screenshot({type: "jpeg", quality: 90, fullPage: true, encoding: "base64"})
 
-  console.log("Closing context...")
+  console.log("Closing browser...")
   await browser.close()
 
   return response
@@ -129,9 +136,5 @@ exports.shutdown = async() => {
   if (proxyServer) {
     await proxyServer.close(true)
     proxyServer = null
-  }
-  if (browser) {
-    await browser.close()
-    browser = null
   }
 }
