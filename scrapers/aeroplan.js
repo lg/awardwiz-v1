@@ -36,7 +36,7 @@ exports.scraperMain = async(page, input) => {
   await page.keyboard.type(input.to)
   await waitAndClick("div[data-automation=one-way-to-location] div[data-selectable]")
 
-  console.log("Turning off 'Compare to AirCanada.com' options...")
+  console.log("Turning off 'Compare to AirCanada.com' option...")
   await waitAndClick("#OneWayAirCanadaCompare1")
 
   console.log("Setting date (mm/dd/yyyy)...")

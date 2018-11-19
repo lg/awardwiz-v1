@@ -80,7 +80,7 @@ export default class AwardWiz {
       console.log(`Running scraper '${scraperParams.scraper}'...`)
       const result = await this.cloud.run(scraperParams)
       if (result.scraperResult) {
-        console.log(`Scraper '${scraperParams.scraper}' returned ${result.scraperResult.searchResults.length} result(s).`)
+        console.log(`Scraper '${scraperParams.scraper}' returned ${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}.`)
       } else {
         console.log(`Scraper '${scraperParams.scraper}' errored.`)
         result.scraperResult = {searchResults: []}
@@ -88,7 +88,7 @@ export default class AwardWiz {
 
       // Individual status per scraper
       const consoleLog = result.consoleLog.map(item => `[${item.date}] ${item.type} - ${item.text}`.replace("T", " ").replace("Z", "")).join("\n")
-      const statusLine = result.error ? `Error: ${result.error.name}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "s" : ""}`
+      const statusLine = result.error ? `Error: ${result.error.name}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
       statusDiv.innerHTML = `${scraperParams.scraper} -
         ${statusLine} -
         <a href="data:image/jpeg;base64,${result.screenshot}">show screenshot</a>
