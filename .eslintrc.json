@@ -45,8 +45,6 @@
     "sort-imports": "off",                // it really doesnt add value
     "valid-jsdoc": "off",                 // not ready for this yet
     "quote-props": ["error", "consistent-as-needed"],               // properties are symbols, not strings
-    "arrow-parens": ["error", "as-needed"],                         // keep clean without brackets everywhere
-    "no-extra-parens": ["error", "all", { "returnAssign": false }], // i want a one-line addeventlistener with arrow function
     "space-before-function-paren": ["error", "never"],              // looks cleaner this way
     "array-bracket-newline": ["error", "consistent"],               // allows for x = [{ \n
     "nonblock-statement-body-position": ["error", "below"],         // im a fan of no curlies when not necessary
@@ -66,6 +64,11 @@
     "no-inline-comments": "off",          // this is fine
     "line-comment-position": "off",       // sometimes you just need to describe whats going on
     "require-await": "off",
+
+    // ts-check
+    "lines-around-comment": "off",        // jsdoc needed all over for ts-check
+    "no-extra-parens": "off",             // jsdoc for casting
+    "arrow-parens": "off",                // jsdoc for function param types
 
     // for prod
     "no-empty-function": "off"

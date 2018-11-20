@@ -5,7 +5,6 @@ export default class AwardWiz {
   constructor() {
     this.config = AwardWiz.loadConfigAndUpdateDocument()
 
-    this.united = null
     this.cloud = new AWSProvider({
       files: ["united.js", "aeroplan.js", "index.js", "package.json"],
       filesDir: "scrapers",
@@ -19,12 +18,11 @@ export default class AwardWiz {
     })
     this.cloud.initOnPage()
 
-    this.grid = new AwardWizGrid(AwardWiz.onRowClicked)
-    this.grid.configureGrid(document.querySelector("#resultsGrid"))
+    this.gridView = new AwardWizGrid(document.querySelector("#resultsGrid"), AwardWiz.onRowClicked)
   }
 
   static loadConfigAndUpdateDocument() {
-    const config = {
+    const config = /** @type {AwardWizConfig} */ ({
       awsAccessKey: localStorage.awsAccessKey || "",
       awsSecretAccessKey: localStorage.awsSecretAccessKey || "",
       awsRegionZone: localStorage.awsRegionZone || "us-west-1a",
@@ -37,10 +35,10 @@ export default class AwardWiz {
       origin: localStorage.origin || "",
       destination: localStorage.destination || "",
       date: localStorage.date || ""
-    }
+    })
 
     for (const configToSave of Object.getOwnPropertyNames(config)) {
-      const element = document.getElementById(configToSave)
+      const element = /** @type {HTMLInputElement?} */ (document.getElementById(configToSave))
       if (!element)
         continue
 
@@ -58,7 +56,7 @@ export default class AwardWiz {
   }
 
   async search() {
-    this.grid.grid.api.showLoadingOverlay()
+    this.gridView.grid.api.showLoadingOverlay()
 
     const searchParams = {
       from: this.config.origin,
@@ -67,18 +65,19 @@ export default class AwardWiz {
       maxConnections: 1
     }
 
-    let allResults = []
-    document.getElementById("searchStatus").innerHTML = ""
+    let allResults = /** @type {Array<SearchResultWithService>} */ ([])
+    const statusElement = /** @type {HTMLDivElement} */ (document.getElementById("searchStatus"))
+    statusElement.innerHTML = ""
 
-    const runScraper = async scraperParams => {
+    const runScraper = async(/** @type {ScraperParams} */ scraperParams) => {
       // Keep a per-scraper status visible
       const statusDiv = document.createElement("div")
       statusDiv.innerHTML = `Searching ${scraperParams.scraper}...`
-      document.getElementById("searchStatus").appendChild(statusDiv)
+      statusElement.appendChild(statusDiv)
 
       // Wait for scraper results
       console.log(`Running scraper '${scraperParams.scraper}'...`)
-      const result = await this.cloud.run(scraperParams)
+      const result = /** @type {ScraperResult} */ (await this.cloud.run(scraperParams))
       if (result.scraperResult) {
         console.log(`Scraper '${scraperParams.scraper}' returned ${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}.`)
       } else {
@@ -95,12 +94,13 @@ export default class AwardWiz {
         <a href="data:text/plain;base64,${btoa(consoleLog)}">show log</a>
         <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}">show result</a> (right click to open)`
 
-      // Append results to existing results w/ serice name
+      // Append results to existing results w/ service name
       allResults = allResults.concat(result.scraperResult.searchResults.map(searchResult => {
-        searchResult.service = scraperParams.scraper
-        return searchResult
+        const newResult = /** @type {SearchResultWithService} */ (searchResult)
+        newResult.service = scraperParams.scraper
+        return newResult
       }))
-      this.grid.grid.api.setRowData(allResults)
+      this.gridView.grid.api.setRowData(allResults)
     }
 
     console.log("Starting search...")
@@ -110,10 +110,12 @@ export default class AwardWiz {
     ])
 
     console.log("Completed search.")
-
-    this.grid.grid.api.hideOverlay()
+    this.gridView.grid.api.hideOverlay()
   }
 
+  /**
+   * @param {Object} params TODO: Change from Object to the actual type from agGrid once types are imported
+   */
   static onRowClicked(params) {
     console.log(`Selected flight details: ${JSON.stringify(params.data, null, 2)}`)
   }

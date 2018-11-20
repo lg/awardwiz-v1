@@ -1,9 +1,9 @@
 const PAGINATION_SIZE = 100
 
 export default class AwardWizGrid {
-  constructor(onRowClicked) {
-    this.grid = null
+  constructor(gridDiv, onRowClicked) {
     this.onRowClicked = onRowClicked
+    this.grid = /** @type {any} */ (AwardWizGrid.configureGrid(gridDiv))  // TODO: remove the any cast once we've imported agGrid
   }
 
   static milesAndCashFormatter(params) {
@@ -59,7 +59,7 @@ export default class AwardWizGrid {
     mainDiv.firstChild.textContent = totalFilterString ? `${totalFilterString} -- ` : ""
   }
 
-  configureGrid(gridDiv) {
+  static configureGrid(gridDiv) {
     const gridOptions = {
       columnDefs: [
         {headerName: "Service", field: "service", width: 100},
@@ -86,7 +86,7 @@ export default class AwardWizGrid {
     }
 
     new window.agGrid.Grid(gridDiv, gridOptions)   // eslint-disable-line no-new
-    this.grid = gridOptions
-    this.grid.api.setRowData([])
+    gridOptions.api.setRowData([])
+    return gridOptions
   }
 }

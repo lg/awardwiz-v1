@@ -47,4 +47,5 @@ Please file PRs for updates to this document if you feel like others could benef
 
 ## References
 
-- https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md
+- Puppeteer docs: https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md
+- Typescript JSDoc notation: https://www.typescriptlang.org/docs/handbook/type-checking-javascript-files.html
