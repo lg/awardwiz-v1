@@ -58,6 +58,10 @@ export default class AWSProvider extends CloudProvider {
     await this.lambda.updateFunctionConfiguration(this.commonFunctionConfig(filesHash)).promise()
   }
 
+  /**
+   * @param {ScraperParams} params
+   * @returns {Promise<ScraperResult>}
+   */
   async run(params) {
     const response = await this.lambda.invoke({
       FunctionName: this.config.functionName,

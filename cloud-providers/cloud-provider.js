@@ -42,6 +42,10 @@ export class CloudProvider {
     throw new Error("Unimplemented!")
   }
 
+  /**
+   * @param {ScraperParams} params
+   * @returns {Promise<ScraperResult>}
+   */
   async run(params) {
     throw new Error("Unimplemented!")
   }

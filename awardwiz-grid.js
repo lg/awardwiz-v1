@@ -1,12 +1,28 @@
+/** @typedef {import("./node_modules/ag-grid-community/main")} AgGrid */
+/** @typedef {import("./node_modules/ag-grid-community/main").GridOptions} GridOptions */
+/** @typedef {import("./node_modules/ag-grid-community/main").GridApi} GridApi */
+/** @typedef {import("./node_modules/ag-grid-community/main").RowClickedEvent} RowClickedEvent */
+/** @typedef {import("./node_modules/ag-grid-community/main").RowNode} RowNode */
+/** @typedef {import("./node_modules/ag-grid-community/main").ValueFormatterParams} ValueFormatterParams */
+/** @typedef {import("./node_modules/ag-grid-community/main").FilterChangedEvent} FilterChangedEvent */
+
 const PAGINATION_SIZE = 100
 
 export default class AwardWizGrid {
+  /** @param {HTMLDivElement} gridDiv
+   * @param {(event: RowClickedEvent) => void} onRowClicked */
   constructor(gridDiv, onRowClicked) {
+    /** @type {(event: RowClickedEvent) => void} */
     this.onRowClicked = onRowClicked
-    this.grid = /** @type {any} */ (AwardWizGrid.configureGrid(gridDiv))  // TODO: remove the any cast once we've imported agGrid
+
+    this.grid = this.configureGrid(gridDiv)
   }
 
+  /** @param {ValueFormatterParams} params */
   static milesAndCashFormatter(params) {
+    if (!params.colDef.headerName)
+      return ""
+
     const cost = params.data.costs[params.colDef.headerName.toLowerCase()]
     if (!cost.miles)
       return ""
@@ -16,19 +32,28 @@ export default class AwardWizGrid {
     return `${milesFormatter.format(cost.miles / 1000)}k + ${cashFormatter.format(cost.cash)}`
   }
 
+  /** @param {ValueFormatterParams} params */
   static dateTimeFormatter(params) {
     const formatter = new Intl.DateTimeFormat("en-US", {month: "numeric", day: "numeric", hour: "numeric", minute: "numeric"})
     return formatter.format(new Date(params.value))
   }
 
+  /** @param {ValueFormatterParams} params */
   static milesAndCashStyler(params) {
     if (params.value)
       return {backgroundColor: "#D5F5E3"}
     return null
   }
 
-  // Sort empty/null values as infinite
-  static milesComparator(valueA, valueB) {
+  /** Sort empty/null values as infinite
+   * @param {any} valueA
+   * @param {any} valueB
+   * @param {RowNode | undefined} nodeA
+   * @param {RowNode | undefined} nodeB
+   * @param {boolean | undefined} isInverted
+   * @returns {number}
+  */
+  static milesComparator(valueA, valueB, nodeA, nodeB, isInverted) {    // eslint-disable-line max-params
     if (valueA === null && valueB === null)
       return 0
     if (valueA === null)
@@ -38,10 +63,17 @@ export default class AwardWizGrid {
     return valueA - valueB
   }
 
-  static updateFilterValue(params) {
+  /** @param {FilterChangedEvent} event */
+  static updateFilterValue(event) {
+    if (!event.api)
+      return
+
     let totalFilterString = ""
-    const model = params.api.getFilterModel()
+    const model = event.api.getFilterModel()
     for (const fieldName of Object.getOwnPropertyNames(model)) {
+      /** TODO:
+       * @param {string} name
+       * @param {{type: string, filter: string}} clause */
       const clauseToString = (name, clause) => `${name} ${clause.type} "${clause.filter}"`
 
       // There are multiple filters
@@ -55,11 +87,16 @@ export default class AwardWizGrid {
     if (totalFilterString)
       totalFilterString = totalFilterString.substring(2)
 
-    const mainDiv = params.api.gridOptionsWrapper.environment.eGridDiv.querySelector("span[ref=eSummaryPanel]")
+    // @ts-ignore because this was a hack to begin with
+    const mainDiv = event.api.gridOptionsWrapper.environment.eGridDiv.querySelector("span[ref=eSummaryPanel]")
     mainDiv.firstChild.textContent = totalFilterString ? `${totalFilterString} -- ` : ""
   }
 
-  static configureGrid(gridDiv) {
+  /**
+  * @param {HTMLDivElement} gridDiv
+  */
+  configureGrid(gridDiv) {
+    /** @type {GridOptions} */
     const gridOptions = {
       columnDefs: [
         {headerName: "Service", field: "service", width: 100},
@@ -85,8 +122,11 @@ export default class AwardWizGrid {
       onRowClicked: this.onRowClicked
     }
 
-    new window.agGrid.Grid(gridDiv, gridOptions)   // eslint-disable-line no-new
-    gridOptions.api.setRowData([])
-    return gridOptions
+    const windowWithAgGrid = /** @type {Window & {agGrid: AgGrid}} */ (window)
+    new windowWithAgGrid.agGrid.Grid(gridDiv, gridOptions)   // eslint-disable-line no-new
+
+    if (gridOptions.api)
+      gridOptions.api.setRowData([])
+    return /** @type {GridOptions & {api: GridApi}} */ (gridOptions)
   }
 }

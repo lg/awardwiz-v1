@@ -18,24 +18,25 @@ export default class AwardWiz {
     })
     this.cloud.initOnPage()
 
-    this.gridView = new AwardWizGrid(document.querySelector("#resultsGrid"), AwardWiz.onRowClicked)
+    this.gridView = new AwardWizGrid(/** @type {HTMLDivElement} */ (document.querySelector("#resultsGrid")), AwardWiz.onRowClicked)
   }
 
   static loadConfigAndUpdateDocument() {
-    const config = /** @type {AwardWizConfig} */ ({
-      awsAccessKey: localStorage.awsAccessKey || "",
-      awsSecretAccessKey: localStorage.awsSecretAccessKey || "",
-      awsRegionZone: localStorage.awsRegionZone || "us-west-1a",
-      awsLambdaRoleArn: localStorage.awsLambdaRoleArn || "",
+    /** @type {AwardWizConfig} */
+    const config = {
+      awsAccessKey: localStorage.getItem("awsAccessKey") || "",
+      awsSecretAccessKey: localStorage.getItem("awsSecretAccessKey") || "",
+      awsRegionZone: localStorage.getItem("awsRegionZone") || "us-west-1a",
+      awsLambdaRoleArn: localStorage.getItem("awsLambdaRoleArn") || "",
 
-      functionName: localStorage.functionName || "awardwiz",
-      proxyUrl: localStorage.proxyUrl || "",
-      aeroplanUsername: localStorage.aeroplanUsername || "",
-      aeroplanPassword: localStorage.aeroplanPassword || "",
-      origin: localStorage.origin || "",
-      destination: localStorage.destination || "",
-      date: localStorage.date || ""
-    })
+      functionName: localStorage.getItem("functionName") || "awardwiz",
+      proxyUrl: localStorage.getItem("proxyUrl") || "",
+      aeroplanUsername: localStorage.getItem("aeroplanUsername") || "",
+      aeroplanPassword: localStorage.getItem("aeroplanPassword") || "",
+      origin: localStorage.getItem("origin") || "",
+      destination: localStorage.getItem("destination") || "",
+      date: localStorage.getItem("date") || ""
+    }
 
     for (const configToSave of Object.getOwnPropertyNames(config)) {
       const element = /** @type {HTMLInputElement?} */ (document.getElementById(configToSave))
@@ -65,7 +66,8 @@ export default class AwardWiz {
       maxConnections: 1
     }
 
-    let allResults = /** @type {Array<SearchResultWithService>} */ ([])
+    /** @type {Array<SearchResultWithService>} */
+    let allResults = []
     const statusElement = /** @type {HTMLDivElement} */ (document.getElementById("searchStatus"))
     statusElement.innerHTML = ""
 
@@ -77,7 +79,8 @@ export default class AwardWiz {
 
       // Wait for scraper results
       console.log(`Running scraper '${scraperParams.scraper}'...`)
-      const result = /** @type {ScraperResult} */ (await this.cloud.run(scraperParams))
+
+      const result = await this.cloud.run(scraperParams)
       if (result.scraperResult) {
         console.log(`Scraper '${scraperParams.scraper}' returned ${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}.`)
       } else {
@@ -114,9 +117,9 @@ export default class AwardWiz {
   }
 
   /**
-   * @param {Object} params TODO: Change from Object to the actual type from agGrid once types are imported
+   * @param {import("./awardwiz-grid.js").RowClickedEvent} event
    */
-  static onRowClicked(params) {
-    console.log(`Selected flight details: ${JSON.stringify(params.data, null, 2)}`)
+  static onRowClicked(event) {
+    console.log(`Selected flight details: ${JSON.stringify(event.data, null, 2)}`)
   }
 }
