@@ -73,7 +73,7 @@ export default class AwardWizGrid {
     for (const fieldName of Object.getOwnPropertyNames(model)) {
       /** TODO:
        * @param {string} name
-       * @param {{type: string, filter: string}} clause */
+       * @param {{type: string, filter: any, filterTo: any, filterType: string}} clause */
       const clauseToString = (name, clause) => `${name} ${clause.type} "${clause.filter}"`
 
       // There are multiple filters
