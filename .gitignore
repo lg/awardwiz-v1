@@ -2,3 +2,4 @@
 node_modules/
 .scratchpad*
 jest.config.js
+*.log

@@ -117,7 +117,7 @@ export default class AwardWiz {
   }
 
   /**
-   * @param {import("./awardwiz-grid.js").RowClickedEvent} event
+   * @param {import("AgGrid").RowClickedEvent} event
    */
   static onRowClicked(event) {
     console.log(`Selected flight details: ${JSON.stringify(event.data, null, 2)}`)

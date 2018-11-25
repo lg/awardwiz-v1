@@ -1,24 +1,16 @@
-/** @typedef {import("./node_modules/ag-grid-community/main")} AgGrid */
-/** @typedef {import("./node_modules/ag-grid-community/main").GridOptions} GridOptions */
-/** @typedef {import("./node_modules/ag-grid-community/main").GridApi} GridApi */
-/** @typedef {import("./node_modules/ag-grid-community/main").RowClickedEvent} RowClickedEvent */
-/** @typedef {import("./node_modules/ag-grid-community/main").RowNode} RowNode */
-/** @typedef {import("./node_modules/ag-grid-community/main").ValueFormatterParams} ValueFormatterParams */
-/** @typedef {import("./node_modules/ag-grid-community/main").FilterChangedEvent} FilterChangedEvent */
-
 const PAGINATION_SIZE = 100
 
 export default class AwardWizGrid {
   /** @param {HTMLDivElement} gridDiv
-   * @param {(event: RowClickedEvent) => void} onRowClicked */
+   * @param {(event: import("AgGrid").RowClickedEvent) => void} onRowClicked */
   constructor(gridDiv, onRowClicked) {
-    /** @type {(event: RowClickedEvent) => void} */
+    /** @type {(event: import("AgGrid").RowClickedEvent) => void} */
     this.onRowClicked = onRowClicked
 
     this.grid = this.configureGrid(gridDiv)
   }
 
-  /** @param {ValueFormatterParams} params */
+  /** @param {import("AgGrid").ValueFormatterParams} params */
   static milesAndCashFormatter(params) {
     if (!params.colDef.headerName)
       return ""
@@ -32,13 +24,13 @@ export default class AwardWizGrid {
     return `${milesFormatter.format(cost.miles / 1000)}k + ${cashFormatter.format(cost.cash)}`
   }
 
-  /** @param {ValueFormatterParams} params */
+  /** @param {import("AgGrid").ValueFormatterParams} params */
   static dateTimeFormatter(params) {
     const formatter = new Intl.DateTimeFormat("en-US", {month: "numeric", day: "numeric", hour: "numeric", minute: "numeric"})
     return formatter.format(new Date(params.value))
   }
 
-  /** @param {ValueFormatterParams} params */
+  /** @param {import("AgGrid").ValueFormatterParams} params */
   static milesAndCashStyler(params) {
     if (params.value)
       return {backgroundColor: "#D5F5E3"}
@@ -48,9 +40,9 @@ export default class AwardWizGrid {
   /** Sort empty/null values as infinite
    * @param {any} valueA
    * @param {any} valueB
-   * @param {RowNode | undefined} nodeA
-   * @param {RowNode | undefined} nodeB
-   * @param {boolean | undefined} isInverted
+   * @param {import("AgGrid").RowNode} [nodeA]
+   * @param {import("AgGrid").RowNode} [nodeB]
+   * @param {boolean} [isInverted]
    * @returns {number}
   */
   static milesComparator(valueA, valueB, nodeA, nodeB, isInverted) {    // eslint-disable-line max-params
@@ -63,7 +55,7 @@ export default class AwardWizGrid {
     return valueA - valueB
   }
 
-  /** @param {FilterChangedEvent} event */
+  /** @param {import("AgGrid").FilterChangedEvent} event */
   static updateFilterValue(event) {
     if (!event.api)
       return
@@ -96,7 +88,7 @@ export default class AwardWizGrid {
   * @param {HTMLDivElement} gridDiv
   */
   configureGrid(gridDiv) {
-    /** @type {GridOptions} */
+    /** @type {import("AgGrid").GridOptions} */
     const gridOptions = {
       columnDefs: [
         {headerName: "Service", field: "service", width: 100},
@@ -122,11 +114,11 @@ export default class AwardWizGrid {
       onRowClicked: this.onRowClicked
     }
 
-    const windowWithAgGrid = /** @type {Window & {agGrid: AgGrid}} */ (window)
+    const windowWithAgGrid = /** @type {Window & {agGrid: import("AgGrid")}} */ (window)
     new windowWithAgGrid.agGrid.Grid(gridDiv, gridOptions)   // eslint-disable-line no-new
 
     if (gridOptions.api)
       gridOptions.api.setRowData([])
-    return /** @type {GridOptions & {api: GridApi}} */ (gridOptions)
+    return /** @type {import("AgGrid").GridOptions & {api: import("AgGrid").GridApi}} */ (gridOptions)
   }
 }
