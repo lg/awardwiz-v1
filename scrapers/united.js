@@ -1,3 +1,7 @@
+/**
+ * @type {Scraper["scraperMain"]}
+ * @param {UnitedSearchQuery} input
+ */
 exports.scraperMain = async(page, input) => {
   console.log("Getting United cookie...")
   await page.goto("https://www.united.com/ual/en/us/flight-search/book-a-flight")
@@ -24,9 +28,14 @@ exports.scraperMain = async(page, input) => {
   return {searchResults: standardizedResults}
 }
 
+/**
+ * @param {any} unitedTrip
+ * @param {number} filterMaxConnections
+ */
 const standardizeResults = (unitedTrip, filterMaxConnections) => {
   const results = []
   for (const flight of unitedTrip.Flights) {
+    /** @type {SearchResult} */
     const result = {
       fromDateTime: monthDayYearToYearMonthDayDateTime(flight.DepartDateTime),
       toDateTime: monthDayYearToYearMonthDayDateTime(flight.LastDestinationDateTime),
@@ -54,7 +63,9 @@ const standardizeResults = (unitedTrip, filterMaxConnections) => {
       if (product.Prices.length === 0)
         continue
 
+      /** @type {number} */
       const milesRequired = product.Prices[0].Amount
+      /** @type {number} */
       const cashRequired = product.TaxAndFees ? product.TaxAndFees.Amount : 0
 
       for (const cabin of ["Economy", "Business", "First"]) {
@@ -74,6 +85,7 @@ const standardizeResults = (unitedTrip, filterMaxConnections) => {
   return results
 }
 
+/** @param {string} monthDayYear */
 const monthDayYearToYearMonthDayDateTime = monthDayYear => {
   return `${monthDayYear.substr(6, 4)}-${monthDayYear.substr(0, 2)}-${monthDayYear.substr(3, 2)} ${monthDayYear.substr(11)}`
 }

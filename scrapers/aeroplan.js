@@ -1,4 +1,9 @@
+/**
+ * @type {Scraper["scraperMain"]}
+ * @param {AeroplanSearchQuery} input
+ */
 exports.scraperMain = async(page, input) => {
+  /** @param {string} selector */
   const waitAndClick = selector => {
     return page.waitForSelector(selector).then(() => {
       return page.click(selector)
@@ -45,6 +50,7 @@ exports.scraperMain = async(page, input) => {
 
   console.log("Starting search and waiting for results window...")
   await page.click("div[data-automation=one-way-submit] button")
+  // @ts-ignore
   const newWindowTarget = await page.browser().waitForTarget(target => target.url() === "https://www.aeroplan.com/adr/Results.do")
   const newPage = await newWindowTarget.page()
 
@@ -60,6 +66,7 @@ exports.scraperMain = async(page, input) => {
   return {searchResults: standardizedResults}
 }
 
+/** @param {any} aeroplanTrip */
 const standardizeResults = aeroplanTrip => {
   // Aeroplan has two modes (basically Saver and Standard from United)
   const classicFlights = aeroplanTrip.NormalResults.product[0].tripComponent[0].ODoption

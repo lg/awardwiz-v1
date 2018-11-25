@@ -1,19 +1,32 @@
 /* eslint-disable */
 
+// @ts-ignore
 const process = require("process")
+// @ts-ignore
 const {execSync} = require("child_process")
 
 const platform = (process.env.LAMBDA_TASK_ROOT && process.env.AWS_EXECUTION_ENV) ? "aws" : "other"
 
 // Modules are loaded at runtime because sometimes the node modules still
 // need to be generated (ex. AWS)
+
+/** @type {Puppeteer?} */
 let puppeteer = null
+
+/** @type {ChromeAwsLambda?} */
 let chromeAwsLambda = null
+
+/** @type {ProxyChain?} */
 let proxyChain = null
 
 // Used for caching incase the runner doesn't throw away our environment
+/** @type {ProxyServer?} */
 let proxyServer = null
 
+/**
+ * @param {ScraperParams & ScraperHashCheckParams} event
+ * @param {AWSContext} context
+ */
 exports.awsEntry = async(event, context) => {
   // AWS doesn't pre-package modules, as such, download them and install
   // to /tmp/node_modules. Note: make sure the uploaded zip has a symlink
@@ -27,31 +40,35 @@ exports.awsEntry = async(event, context) => {
   return context.succeed(response)
 }
 
-exports.debugEntry = async(params) => {
-  return await handleRequest(params)
-}
-
 /////////////////
 
+/**
+ * @param {string | null} proxyUrl
+ */
 const startProxyServer = async proxyUrl => {
   // The proxy server will always run, but it won't go through any external server unless enabled
   // with a 'proxy' attribute in the request body. Running our own proxy server is necessary because
   // Puppeteer doesn't allow us to pass in a username/password for proxy auth, plus we want
   // per-context/per-auth proxies to benefit from re-using the already-running Chromium.
   if (!proxyServer) {
+    // @ts-ignore
     proxyChain = proxyChain || require("proxy-chain")
     proxyServer = new proxyChain.Server({port: 8203})
   }
   proxyServer.prepareRequestFunction = () => {
-    return {upstreamProxyUrl: proxyUrl || null, requestAuthentication: false}
+    return {upstreamProxyUrl: proxyUrl, requestAuthentication: false}
   }
   if (!proxyServer.server.listening)
     await proxyServer.listen()
 }
 
+/**
+ * @param {boolean} headless
+ */
 const startPuppeteer = async headless => {
   console.log("Launching new Puppeteer...")
 
+  // @ts-ignore
   chromeAwsLambda = chromeAwsLambda || require("chrome-aws-lambda")
   puppeteer = puppeteer || chromeAwsLambda.puppeteer
 
@@ -73,12 +90,22 @@ const startPuppeteer = async headless => {
   return browser
 }
 
+/**
+ * @param {function(): Promise} toRun
+ */
 const instrumentConsole = async toRun => {
+  /** @type {Array<LogItem>} */
   const fullConsoleLog = []
+
+  /** @type {Array<ConsoleMethod>} */
   const consoleMethods = ["error", "log", "info"]
-  const oldConsole = {}
+
+  /** @type {Map<string, function(ConsoleMethod)>} */
+  const oldConsole = new Map()
   for (const consoleMethod of consoleMethods) {
     oldConsole[consoleMethod] = console[consoleMethod]
+
+    /** @param {ConsoleMethod} text */
     console[consoleMethod] = text => {
       oldConsole[consoleMethod](text)
       fullConsoleLog.push({type: consoleMethod, date: new Date().toISOString(), text})
@@ -92,25 +119,27 @@ const instrumentConsole = async toRun => {
   return fullConsoleLog
 }
 
+/** @param {ScraperParams & ScraperHashCheckParams} params */
 const handleRequest = async params => {
   console.log(`Welcome! Request is: ${JSON.stringify(params)}`)
 
-  if (params && params.hashCheck) {
+  if (params && params.hashCheck)
     return {hashCheck: "{{HASH_CHECK_AUTO_REPLACE}}"}
-  }
 
   console.log("Starting proxy and Chromium...")
-  await startProxyServer(params.proxy)
+  await startProxyServer(params.proxy || null)
 
-  const browser = await startPuppeteer(params.headless)
+  const browser = await startPuppeteer(params.headless === undefined ? true : params.headless)
   const page = await browser.newPage()
 
   await page.setUserAgent((await browser.userAgent()).replace("HeadlessChrome", "Chrome"))
   await page.setDefaultNavigationTimeout(90000)
 
   console.log(`Launching scraper '${params.scraper}'...`)
+  /** @type {Scraper} */
   const scraper = require(`./${params.scraper}.js`)             // eslint-disable-line global-require
 
+  /** @type {ScraperResult} */
   const response = {}
   response.consoleLog = await instrumentConsole(async() => {
     try {

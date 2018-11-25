@@ -15,61 +15,6 @@ interface AwardWizConfig {
   date: string
 }
 
-interface ScraperResult {
-  consoleLog: Array<{date: string, text: string, type: string}>
-  screenshot: string
-  scraperResult?: {
-    searchResults: Array<SearchResult>
-  }
-  error?: Error
-  hashCheck?: string
-}
-
-interface SearchResult {
-  fromDateTime: string
-  toDateTime: string
-  fromAirport: string
-  toAirport: string
-  flights: string
-  costs: {
-    economy: SearchResultMilesAndCash
-    business: SearchResultMilesAndCash
-    first: SearchResultMilesAndCash
-  }
-}
-
-interface SearchResultMilesAndCash {
-  miles?: number
-  cash?: number
-}
-
-interface SearchResultWithService extends SearchResult {
-  service: string
-}
-
-interface ScraperParams {
-  scraper: string
-  proxy?: string
-  params: UnitedSearchQuery | AeroplanSearchQuery
-}
-
-interface ScraperHashCheckParams {
-  hashCheck: true
-}
-
-interface RegularSearchQuery {
-  from: string
-  to: string
-  date: string
-  maxConnections: number
-}
-
-interface UnitedSearchQuery extends RegularSearchQuery {}
-interface AeroplanSearchQuery extends RegularSearchQuery {
-  aeroplanUsername: string
-  aeroplanPassword: string
-}
-
 interface CloudProviderConfig {
   files: Array<string>
   filesDir: string

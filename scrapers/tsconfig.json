@@ -1,0 +1,7 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "suppressImplicitAnyIndexErrors": true
+  },
+  "exclude": ["node_modules/*"]
+}
