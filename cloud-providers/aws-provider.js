@@ -5,21 +5,24 @@
 import {CloudProvider} from "./cloud-provider.js"
 
 export default class AWSProvider extends CloudProvider {
+
+  /** @param {AWSProviderConfig} config */
   constructor(config) {
     super(config)
-    this.config.region = this.config.regionZone ? this.config.regionZone.slice(0, -1) : ""
+
+    /** TODO: fix this to not be this way
+     * @type {AWSProviderConfig} */
+    this.config = this.config
+
+    this.region = this.config.regionZone ? this.config.regionZone.slice(0, -1) : ""
 
     AWS.config.update({
       accessKeyId: this.config.accessKey,
       secretAccessKey: this.config.secretAccessKey,
-      region: this.config.region
+      region: this.region
     })
 
     this.lambda = new AWS.Lambda()
-  }
-
-  async stepValidateEnvironment() {
-    // TODO: Create the IAM role if necessary
   }
 
   async stepGetExistingFunctionHash() {
@@ -39,6 +42,8 @@ export default class AWSProvider extends CloudProvider {
     return func.Configuration.Description
   }
 
+  /** @param {ArrayBuffer} zipFile
+    * @param {string} filesHash */
   async stepCreateFunction(zipFile, filesHash) {
     return this.lambda.createFunction({
       ...this.commonFunctionConfig(filesHash),
@@ -49,6 +54,8 @@ export default class AWSProvider extends CloudProvider {
     }).promise()
   }
 
+  /** @param {ArrayBuffer} zipFile
+    * @param {string} filesHash */
   async stepUpdateFunction(zipFile, filesHash) {
     await this.lambda.updateFunctionCode({
       FunctionName: this.config.functionName,
@@ -71,9 +78,8 @@ export default class AWSProvider extends CloudProvider {
     return JSON.parse(response.Payload)
   }
 
-  // private
-
-  /** @param {string} hash */
+  /** @private
+   * @param {string} hash */
   commonFunctionConfig(hash) {
     return {
       FunctionName: this.config.functionName,

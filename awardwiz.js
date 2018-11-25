@@ -68,10 +68,13 @@ export default class AwardWiz {
 
     /** @type {Array<SearchResultWithService>} */
     let allResults = []
-    const statusElement = /** @type {HTMLDivElement} */ (document.getElementById("searchStatus"))
+    const statusElement = /** @type {HTMLDivElement?} */ (document.getElementById("searchStatus"))
+    if (!statusElement)
+      throw new Error("Missing status div")
     statusElement.innerHTML = ""
 
-    const runScraper = async(/** @type {ScraperParams} */ scraperParams) => {
+    /** @param {ScraperParams} scraperParams */
+    const runScraper = async(scraperParams) => {
       // Keep a per-scraper status visible
       const statusDiv = document.createElement("div")
       statusDiv.innerHTML = `Searching ${scraperParams.scraper}...`

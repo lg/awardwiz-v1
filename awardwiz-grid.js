@@ -63,7 +63,7 @@ export default class AwardWizGrid {
     let totalFilterString = ""
     const model = event.api.getFilterModel()
     for (const fieldName of Object.getOwnPropertyNames(model)) {
-      /** TODO:
+      /**
        * @param {string} name
        * @param {{type: string, filter: any, filterTo: any, filterType: string}} clause */
       const clauseToString = (name, clause) => `${name} ${clause.type} "${clause.filter}"`
@@ -114,11 +114,11 @@ export default class AwardWizGrid {
       onRowClicked: this.onRowClicked
     }
 
-    const windowWithAgGrid = /** @type {Window & {agGrid: import("AgGrid")}} */ (window)
-    new windowWithAgGrid.agGrid.Grid(gridDiv, gridOptions)   // eslint-disable-line no-new
+    new window.agGrid.Grid(gridDiv, gridOptions)   // eslint-disable-line no-new
 
-    if (gridOptions.api)
-      gridOptions.api.setRowData([])
-    return /** @type {import("AgGrid").GridOptions & {api: import("AgGrid").GridApi}} */ (gridOptions)
+    const gridOptionsWithApi = /** @type {import("AgGrid").GridOptions & {api: import("AgGrid").GridApi}} */ (gridOptions)
+    gridOptionsWithApi.api.setRowData([])
+
+    return gridOptionsWithApi
   }
 }

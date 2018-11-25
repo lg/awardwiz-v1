@@ -2,7 +2,10 @@
 
 /* global SparkMD5, JSZip */
 
+/** @abstract */
 export class CloudProvider {
+
+  /** @param {CloudProviderConfig} config */
   constructor(config) {
     this.config = config
     if (!config.functionName)
@@ -10,40 +13,45 @@ export class CloudProvider {
   }
 
   async initOnPage() {
-    [
-      {obj: "JSZip", url: "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"},
-      {obj: "SparkMD5", url: "https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.0/spark-md5.min.js"}
-    ].forEach(({obj, url}) => {
-      if (!window[obj]) {
+    /** @type {Object<string, string>} */
+    const modules = {
+      JSZip: "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js",
+      SparkMD5: "https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.0/spark-md5.min.js"
+    }
+
+    for (const key of Object.getOwnPropertyNames(modules)) {
+      if (!window[key]) {
+        /** @type {HTMLScriptElement} */
         const scriptTag = document.createElement("script")
-        scriptTag.src = url
+        scriptTag.src = modules[key]
+        if (!document.head)
+          throw new Error("Missing head element in document")
         document.head.appendChild(scriptTag)
       }
-    })
+    }
   }
 
-  async stepValidateEnvironment() {
-  }
-
-  /** @param {string} zipFile
-    * @param {string} filesHash */
+  /**
+   * @param {ArrayBuffer} zipFile
+   * @param {string} filesHash */
   async stepCreateFunction(zipFile, filesHash) {
     throw new Error("Unimplemented!")
   }
 
-  /** @param {string} zipFile
-    * @param {string} filesHash */
+  /**
+   * @param {ArrayBuffer} zipFile
+   * @param {string} filesHash */
   async stepUpdateFunction(zipFile, filesHash) {
     throw new Error("Unimplemented!")
   }
 
-  /** @returns {Promise<boolean>} */
-  async stepGetExistingFunctionHash(filesHash) {
+  /** @returns {Promise<string>} */
+  async stepGetExistingFunctionHash() {
     throw new Error("Unimplemented!")
   }
 
   /**
-   * @param {ScraperParams} params
+   * @param {ScraperParams | ScraperHashCheckParams} params
    * @returns {Promise<ScraperResult>}
    */
   async run(params) {
@@ -53,14 +61,11 @@ export class CloudProvider {
   /////
 
   async prep() {
-    console.log("Validating environment...")
-    await this.stepValidateEnvironment()
-
     console.log("Prepping package...")
     const {filesHash, zipFile} = await this.prepPackage()
 
     console.log("Getting if cloud has up to date function...")
-    const existingFunctionHash = await this.stepGetExistingFunctionHash(filesHash)
+    const existingFunctionHash = await this.stepGetExistingFunctionHash()
     let functionUpdated = true
     if (existingFunctionHash === filesHash) {
       console.log("Up to date!")
@@ -77,14 +82,15 @@ export class CloudProvider {
       console.log("Waiting for function to be live...")
       await this.waitFor(5000, 12 * 5, async() => {         // 5 mins timeout
         const out = await this.run({hashCheck: true})
-        return out.hashCheck === filesHash ? true : null
+        return out.hashCheck === filesHash
       })
     }
   }
 
-  ///// private
-
+  /** @private
+   * @returns {Promise<{filesHash: string, zipFile: ArrayBuffer}>} */
   async prepPackage() {
+    /** @type {Object<string, string>} */
     const fileContents = {}
     await Promise.all(this.config.files.map(async filename => {
       fileContents[filename] = await fetch(`${this.config.filesDir}/${filename}`).then(result => result.text())
@@ -97,11 +103,10 @@ export class CloudProvider {
       zip.file(filename, contents)
     })
 
-    // We unzip a symlink since we cannot write to the directory at runtime
+    // We unzip a symlink since we cannot write to the main directory at runtime
     zip.file("node_modules", "/tmp/node_modules", {
-      // see https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/stat.h#n10
-      // 0120000 for the symlink, 0755 for the permissions : 0120755 == 41453 (your example)
-      unixPermissions: parseInt("120755", 8)
+      // 0120000 for the symlink, 0755 for the permissions (see https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/stat.h#n10)
+      unixPermissions: 0o120755
     })
 
     const zipFile = await zip.generateAsync({type: "arraybuffer", platform: "UNIX"})  // platform UNIX to allow symlinks
@@ -109,13 +114,19 @@ export class CloudProvider {
     return {filesHash, zipFile}
   }
 
+  /**
+   * @private
+   * @param {number} attemptDelayMs
+   * @param {number} maxAttempts
+   * @param {() => Promise<boolean>} toRun should return true if successful
+   */
   async waitFor(attemptDelayMs, maxAttempts, toRun) {
+    /** @param {number} ms */
     const delay = ms => new Promise(res => setTimeout(res, ms))
     for (let loopNo = 0; loopNo < maxAttempts; loopNo += 1) {
       /* eslint-disable no-await-in-loop */
-      const result = await toRun()
-      if (result)
-        return result
+      if (await toRun())
+        return
 
       // Do the delay every time but the last loop
       if (loopNo < maxAttempts - 1)
