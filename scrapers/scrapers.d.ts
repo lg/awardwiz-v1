@@ -1,5 +1,3 @@
-// TODO: bring in @types/node and other types
-
 interface SearchResult {
   fromDateTime: string
   toDateTime: string
@@ -65,18 +63,19 @@ interface LogItem {
 }
 
 declare class Scraper {
-  scraperMain(page: any, searchQuery: SearchQuery): Promise<{searchResults: Array<SearchResult>}>
+  scraperMain(page: import("puppeteer").Page, searchQuery: SearchQuery): Promise<{searchResults: Array<SearchResult>}>
 }
 
 // TODO: fix the below by importing proper definitions and remove no-tscheck
 declare class AWSContext {
   succeed(response: any): any
 }
-declare type Puppeteer = any
+
 declare type ChromeAwsLambda = any
 declare type ProxyChain = any
 declare type ProxyServer = any
 
+// TODO: bring in @types/node and other types
 // TODO: consider importing the United schema lol
 // TODO: turn off suppressImplicitAnyIndexErrors
 // TODO: really look at all uses of "page" after fixing puppeteer

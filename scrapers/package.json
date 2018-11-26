@@ -17,6 +17,7 @@
     "puppeteer-core": "^1.10.0"
   },
   "devDependencies": {
+    "@types/puppeteer": "^1.10.0",
     "puppeteer": "^1.10.0"
   },
   "scripts": {

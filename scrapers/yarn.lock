@@ -2,6 +2,18 @@
 # yarn lockfile v1
 
 
+"@types/node@*":
+  version "10.12.10"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.10.tgz#4fa76e6598b7de3f0cb6ec3abacc4f59e5b3a2ce"
+  integrity sha512-8xZEYckCbUVgK8Eg7lf5Iy4COKJ5uXlnIOnePN0WUwSQggy9tolM+tDJf7wMOnT/JT/W9xDYIaYggt3mRV2O5w==
+
+"@types/puppeteer@^1.10.0":
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/@types/puppeteer/-/puppeteer-1.10.0.tgz#15d5389d6d5ded7bfc0b06287e85655994f8badb"
+  integrity sha512-qrDx+mdV3jj5GYVW9rh8upVt+Hu6xUKerOJE5ko7bSm3aagqKybhwSsQvLqaZJzNs0vbyvtX0wTgs/H/ZvORCA==
+  dependencies:
+    "@types/node" "*"
+
 agent-base@^4.1.0:
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/agent-base/-/agent-base-4.2.1.tgz#d89e5999f797875674c07d87f260fc41e83e8ca9"

@@ -1,5 +1,5 @@
 /**
- * @type {Scraper["scraperMain"]}
+ * @param {import("puppeteer").Page} page
  * @param {UnitedSearchQuery} input
  */
 exports.scraperMain = async(page, input) => {

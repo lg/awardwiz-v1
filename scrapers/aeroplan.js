@@ -1,5 +1,5 @@
 /**
- * @type {Scraper["scraperMain"]}
+ * @param {import("puppeteer").Page} page
  * @param {AeroplanSearchQuery} input
  */
 exports.scraperMain = async(page, input) => {
@@ -66,7 +66,9 @@ exports.scraperMain = async(page, input) => {
   return {searchResults: standardizedResults}
 }
 
-/** @param {any} aeroplanTrip */
+/**
+ * @param {any} aeroplanTrip
+ */
 const standardizeResults = aeroplanTrip => {
   // Aeroplan has two modes (basically Saver and Standard from United)
   const classicFlights = aeroplanTrip.NormalResults.product[0].tripComponent[0].ODoption

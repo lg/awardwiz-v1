@@ -10,7 +10,7 @@ const platform = (process.env.LAMBDA_TASK_ROOT && process.env.AWS_EXECUTION_ENV)
 // Modules are loaded at runtime because sometimes the node modules still
 // need to be generated (ex. AWS)
 
-/** @type {Puppeteer?} */
+/** @type {import("puppeteer")?} */
 let puppeteer = null
 
 /** @type {ChromeAwsLambda?} */
@@ -70,7 +70,7 @@ const startPuppeteer = async headless => {
 
   // @ts-ignore
   chromeAwsLambda = chromeAwsLambda || require("chrome-aws-lambda")
-  puppeteer = puppeteer || chromeAwsLambda.puppeteer
+  puppeteer = /** @type {import("puppeteer")} */ (puppeteer || chromeAwsLambda.puppeteer)
 
   const browser = await puppeteer.launch({
     args: [
