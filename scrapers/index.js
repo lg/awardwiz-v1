@@ -1,8 +1,6 @@
 /* eslint-disable */
 
-// @ts-ignore
 const process = require("process")
-// @ts-ignore
 const {execSync} = require("child_process")
 
 const platform = (process.env.LAMBDA_TASK_ROOT && process.env.AWS_EXECUTION_ENV) ? "aws" : "other"
@@ -13,14 +11,14 @@ const platform = (process.env.LAMBDA_TASK_ROOT && process.env.AWS_EXECUTION_ENV)
 /** @type {import("puppeteer")?} */
 let puppeteer = null
 
-/** @type {ChromeAwsLambda?} */
+/** @type {import("chrome-aws-lambda")?} */
 let chromeAwsLambda = null
 
-/** @type {ProxyChain?} */
+/** @type {import("proxy-chain")?} */
 let proxyChain = null
 
 // Used for caching incase the runner doesn't throw away our environment
-/** @type {ProxyServer?} */
+/** @type {import("proxy-chain").Server?} */
 let proxyServer = null
 
 /**
@@ -51,8 +49,7 @@ const startProxyServer = async proxyUrl => {
   // Puppeteer doesn't allow us to pass in a username/password for proxy auth, plus we want
   // per-context/per-auth proxies to benefit from re-using the already-running Chromium.
   if (!proxyServer) {
-    // @ts-ignore
-    proxyChain = proxyChain || require("proxy-chain")
+    proxyChain = /** @type {import("proxy-chain")} */ (proxyChain || require("proxy-chain"))
     proxyServer = new proxyChain.Server({port: 8203})
   }
   proxyServer.prepareRequestFunction = () => {
@@ -68,8 +65,8 @@ const startProxyServer = async proxyUrl => {
 const startPuppeteer = async headless => {
   console.log("Launching new Puppeteer...")
 
-  // @ts-ignore
-  chromeAwsLambda = chromeAwsLambda || require("chrome-aws-lambda")
+
+  chromeAwsLambda = /** @type {import("chrome-aws-lambda")} */ (chromeAwsLambda || require("chrome-aws-lambda"))
   puppeteer = /** @type {import("puppeteer")} */ (puppeteer || chromeAwsLambda.puppeteer)
 
   const browser = await puppeteer.launch({

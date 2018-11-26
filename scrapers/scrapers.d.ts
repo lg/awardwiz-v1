@@ -66,18 +66,42 @@ declare class Scraper {
   scraperMain(page: import("puppeteer").Page, searchQuery: SearchQuery): Promise<{searchResults: Array<SearchResult>}>
 }
 
+///////////
+
+declare module "chrome-aws-lambda" {
+  type ChromeAwsLambda = {
+    puppeteer: typeof import("puppeteer")
+    executablePath?: Promise<string>
+    headless: boolean
+    args: Array<string>
+    defaultViewport: Object
+  }
+
+  export = ChromeAwsLambda;
+}
+
+declare module "proxy-chain" {
+  class Server {
+    constructor(options: {
+      port: number
+    })
+    prepareRequestFunction: () => {
+      upstreamProxyUrl: string | null,
+      requestAuthentication: boolean
+    }
+    server: {
+      listening: boolean
+    }
+    listen: () => Promise<void>
+    close: (closeClients: boolean) => Promise<void>
+  }
+}
+
+///////
+
 // TODO: fix the below by importing proper definitions and remove no-tscheck
 declare class AWSContext {
   succeed(response: any): any
 }
 
-declare type ChromeAwsLambda = any
-declare type ProxyChain = any
-declare type ProxyServer = any
-
-// TODO: bring in @types/node and other types
-// TODO: consider importing the United schema lol
-// TODO: turn off suppressImplicitAnyIndexErrors
-// TODO: really look at all uses of "page" after fixing puppeteer
-// TODO: look over all these files for explicit "any"s
-// TODO: look for all ts-ignores
+// TODO: import aws stuff

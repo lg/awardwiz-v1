@@ -50,7 +50,6 @@ exports.scraperMain = async(page, input) => {
 
   console.log("Starting search and waiting for results window...")
   await page.click("div[data-automation=one-way-submit] button")
-  // @ts-ignore
   const newWindowTarget = await page.browser().waitForTarget(target => target.url() === "https://www.aeroplan.com/adr/Results.do")
   const newPage = await newWindowTarget.page()
 
