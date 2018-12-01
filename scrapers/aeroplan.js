@@ -66,7 +66,7 @@ exports.scraperMain = async(page, input) => {
 }
 
 /**
- * @param {any} aeroplanTrip
+ * @param {import("./aeroplan").RawAeroplanResult.RootObject} aeroplanTrip
  */
 const standardizeResults = aeroplanTrip => {
   // Aeroplan has two modes (basically Saver and Standard from United)
@@ -77,8 +77,8 @@ const standardizeResults = aeroplanTrip => {
   const results = []
   for (const flight of flights) {
     let result = {
-      fromDateTime: flight.segment[0].departureDateTime.replace("T", " "),
-      toDateTime: flight.segment[flight.segment.length - 1].arrivalDateTime.replace("T", " "),
+      fromDateTime: flight.segment[0].departureDateTime.toString().replace("T", " "),
+      toDateTime: flight.segment[flight.segment.length - 1].arrivalDateTime.toString().replace("T", " "),
       fromAirport: flight.segment[0].origin,
       toAirport: flight.segment[flight.segment.length - 1].destination,
       flights: "",
