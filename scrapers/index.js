@@ -38,6 +38,13 @@ exports.awsEntry = async(event, context) => {
   return context.succeed(response)
 }
 
+/**
+ * @param {ScraperParams} params
+ */
+exports.debugEntry = async(params) => {
+  return await handleRequest(/** @type {ScraperParams & ScraperHashCheckParams} */ (params))
+}
+
 /////////////////
 
 /**
@@ -97,7 +104,7 @@ const instrumentConsole = async toRun => {
   /** @type {Array<ConsoleMethod>} */
   const consoleMethods = ["error", "log", "info"]
 
-  /** @type {Map<string, function(ConsoleMethod)>} */
+  /** @type {Map<string, function(ConsoleMethod): void>} */
   const oldConsole = new Map()
   for (const consoleMethod of consoleMethods) {
     oldConsole[consoleMethod] = console[consoleMethod]

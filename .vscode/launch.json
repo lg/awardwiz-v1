@@ -15,7 +15,8 @@
       ],
       "cwd": "${workspaceFolder}/scrapers",
       "port": 9229,
-      "stopOnEntry": false
+      "stopOnEntry": false,
+      "envFile": "${workspaceFolder}/.env"
     },
     {
       "type": "chrome",

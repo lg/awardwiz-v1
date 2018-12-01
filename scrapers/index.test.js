@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 // Note: Requires a jest.config.js with globals:
 //   testProxy - a working proxy server in http://user:pass@domain.com form
 //   aeroplanUsername - your aeroplan membership id

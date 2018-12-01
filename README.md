@@ -30,7 +30,7 @@ Basically you just edit the HTML and Javascript files directly, but consider run
 
 To debug the main code with VSCode, use the `Launch Chrome against localhost` option along with either using the python one-liner above, or using something like the "Live Server" extension.
 
-To debug or create scrapers with VSCode, it's a bit more complicated. First, make sure you ran `yarn` to install Chromium and Puppeteer. There's a convenience script in `scrapers/debug.js` which basically hits the same thing the cloud function would. This can be run from VSCode with debugger attached via the `Debug scraper` config. When running a scraper locally Chromium won't be headless, plus stuff like the dev tools will be automatically opened.
+To debug or create scrapers with VSCode, it's a bit more complicated. First, make sure you ran `yarn` to install Chromium and Puppeteer. There's a convenience script in `scrapers/debug.js` which basically hits the same thing the cloud function would. This can be run from VSCode with debugger attached via the `Debug scraper` config. When running a scraper locally Chromium won't be headless, plus stuff like the dev tools will be automatically opened. If using `Debug scraper`, make sure to create a `.env` file with the parameters in `scrapers/debug.js`.
 
 Please file PRs for updates to this document if you feel like others could benefit from something you figured out while setting up your dev environment!
 

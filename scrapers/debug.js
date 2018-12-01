@@ -1,6 +1,7 @@
-/* eslint-disable */
+/* eslint-disable no-process-env */
 
 const index = require("./index")
+const process = require("process")
 
 const main = async() => {
   console.log("Starting")
@@ -11,8 +12,8 @@ const main = async() => {
       to: "YOW",
       date: "2018-12-01",
       maxConnections: 1,
-      aeroplanUsername: "USERNAMEHERE",
-      aeroplanPassword: "PASSWORDHERE"
+      aeroplanUsername: process.env.AEROPLAN_USERNAME,
+      aeroplanPassword: process.env.AEROPLAN_PASSWORD
     }
   })
   console.log("Done")
