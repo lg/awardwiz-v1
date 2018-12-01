@@ -12,13 +12,13 @@
     }
   },
   "dependencies": {
-    "chrome-aws-lambda": "^1.10.0",
+    "chrome-aws-lambda": "^1.10.1",
     "proxy-chain": "^0.2.5",
-    "puppeteer-core": "^1.10.0"
+    "puppeteer-core": "^1.11.0"
   },
   "devDependencies": {
-    "@types/puppeteer": "^1.10.0",
-    "puppeteer": "^1.10.0"
+    "@types/puppeteer": "^1.10.1",
+    "puppeteer": "^1.11.0"
   },
   "scripts": {
     "debug": "node --inspect-brk=9229 debug.js"
