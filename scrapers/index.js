@@ -79,11 +79,7 @@ const startPuppeteer = async headless => {
   const browser = await puppeteer.launch({
     args: [
       ...chromeAwsLambda.args,
-      "--proxy-server=http://127.0.0.1:8203",
-
-      // Necessary for loading certain websites (ex. united.com)
-      "--disable-software-rasterizer",
-      "--disable-gpu"
+      "--proxy-server=http://127.0.0.1:8203"
     ],
 
     executablePath: await chromeAwsLambda.executablePath,

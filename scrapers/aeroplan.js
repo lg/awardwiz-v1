@@ -66,13 +66,13 @@ exports.scraperMain = async(page, input) => {
 }
 
 /**
- * @param {import("./aeroplan").RawAeroplanResult.RootObject} aeroplanTrip
+ * @param {import("./aeroplan").RawAeroplanResult} aeroplanTrip
  */
 const standardizeResults = aeroplanTrip => {
-  // Aeroplan has two modes (basically Saver and Standard from United)
-  const classicFlights = aeroplanTrip.NormalResults.product[0].tripComponent[0].ODoption
-  const classicPlusFlights = aeroplanTrip.NormalResults.product[1].tripComponent[0].ODoption
-  const flights = classicFlights.concat(classicPlusFlights)
+  const flights = aeroplanTrip.NormalResults.product[0].tripComponent[0].ODoption || []
+
+  // Aeroplan has two modes (basically Saver and Standard from United), this checks for that second type
+  flights.push(...(aeroplanTrip.NormalResults.product[1].tripComponent[0].ODoption || []))
 
   const results = []
   for (const flight of flights) {
