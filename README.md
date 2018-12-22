@@ -34,6 +34,22 @@ To debug or create scrapers with VSCode, it's a bit more complicated. First, mak
 
 Please file PRs for updates to this document if you feel like others could benefit from something you figured out while setting up your dev environment!
 
+## Developing a new scraper
+
+Create a new file in the `scrapers/` directory. Here's the initial template to get started:
+
+```js
+/**
+ * @param {import("puppeteer").Page} page
+ * @param {SearchQuery} input
+ */
+exports.scraperMain = async(page, input) => {
+  return {searchResults: []}
+}
+```
+
+Put a breakpoint on that `return` line. Then go to the `scrapers/debug.js` file and change the parameters to be for your new scraper. Start the `Debug scraper` launcher and wait for the breakpoint to get hit. Once it does, you're in the right context and figure out the commands you'll need to issue Puppeteer to properly scrape what you need.
+
 ## Future
 
 - add GCP, Azure, Apify and other cloud function providers
