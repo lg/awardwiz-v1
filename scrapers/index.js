@@ -78,7 +78,9 @@ const startPuppeteer = async headless => {
 
   const browser = await puppeteer.launch({
     args: [
-      ...chromeAwsLambda.args,
+      // Use chromeAwsLambda params for proper compatibility on Lambda, but do not disable notifications
+      // since some websites use this to detect headless browsers
+      ...chromeAwsLambda.args.filter(checkParam => checkParam != "--disable-notifications"),
       "--proxy-server=http://127.0.0.1:8203"
     ],
 
@@ -132,6 +134,7 @@ const handleRequest = async params => {
   const browser = await startPuppeteer(params.headless === undefined ? true : params.headless)
   const page = await browser.newPage()
 
+  await applyBrowserDetectionEvasion(page)
   await page.setUserAgent((await browser.userAgent()).replace("HeadlessChrome", "Chrome"))
   await page.setDefaultNavigationTimeout(90000)
 
@@ -156,6 +159,75 @@ const handleRequest = async params => {
   await browser.close()
 
   return response
+}
+
+/** @param {import("puppeteer").Page} page */
+const applyBrowserDetectionEvasion = async page => {
+  // Apply evasions for detecting that we're a browser as per https://github.com/paulirish/headless-cat-n-mouse/blob/master/apply-evasions.js
+  await page.evaluateOnNewDocument(() => {
+    // Pass the Webdriver Test.
+    // @ts-ignore
+    const newProto = navigator.__proto__;
+    delete newProto.webdriver;
+    // @ts-ignore
+    navigator.__proto__ = newProto;
+
+    // Pass the Chrome Test.
+    window.chrome = {
+      runtime: {}
+    };
+    window.console.debug = () => {
+      return null;
+    };
+
+    // overwrite the `languages` property to use a custom getter
+    Object.defineProperty(navigator, "languages", {
+      get: function() {
+        return ["en-US", "en"];
+      }
+    });
+
+    // overwrite the `plugins` property to use a custom getter
+    Object.defineProperty(navigator, 'plugins', {
+      get: function() {
+        // this just needs to have `length > 0`, but we could mock the plugins too
+        return [1, 2, 3, 4, 5];
+      },
+    });
+
+    // @ts-ignore
+    const originalQuery = window.navigator.permissions.query;
+    // @ts-ignore
+    window.navigator.permissions.__proto__.query = parameters =>
+      parameters.name === 'notifications'
+        ? Promise.resolve({state: Notification.permission})
+        : originalQuery(parameters);
+
+    // Inspired by: https://github.com/ikarienator/phantomjs_hide_and_seek/blob/master/5.spoofFunctionBind.js
+    const oldCall = Function.prototype.call;
+    function call() {
+      // @ts-ignore
+      return oldCall.apply(this, arguments);
+    }
+    Function.prototype.call = call;
+
+    const nativeToStringFunctionString = Error.toString().replace(/Error/g, "toString");
+    const oldToString = Function.prototype.toString;
+
+    function functionToString() {
+      // @ts-ignore
+      if (this === window.navigator.permissions.query) {
+        return "function query() { [native code] }";
+      }
+      // @ts-ignore
+      if (this === functionToString) {
+        return nativeToStringFunctionString;
+      }
+      // @ts-ignore
+      return oldCall.call(oldToString, this);
+    }
+    Function.prototype.toString = functionToString;
+  })
 }
 
 // Used by the test suite
