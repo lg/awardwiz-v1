@@ -8,8 +8,8 @@ const main = async() => {
   const result = await index.debugEntry({
     scraper: "ita",
     params: {
-      from: "LAX",
-      to: "JFK",
+      origin: "LAX",
+      destination: "JFK",
       date: "2018-12-25",
       maxConnections: 0
     }
