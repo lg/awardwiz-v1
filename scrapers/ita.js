@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+
 /**
  * @param {import("puppeteer").Page} page
  * @param {SearchQuery} input
@@ -33,17 +35,18 @@ exports.scraperMain = async(page, input) => {
   console.log("Starting search...")
   await Promise.all([
     page.click("button"),
-    page.waitForResponse("https://matrix.itasoftware.com/search")
+    page.waitForResponse("https://matrix.itasoftware.com/search"),
+    page.waitForResponse("https://matrix.itasoftware.com/pricecurve")
   ])
 
-  // If there are multiple pages, request everything
-  const allLink = await page.$x("//a[text()='All']")
-  if (allLink.length > 0) {
-    await Promise.all([
-      allLink[0].click(),
-      page.waitForXPath("//span[text()='All']")
-    ])
-  }
+  // // If there are multiple pages, request everything
+  // const allLink = await page.$x("//a[text()='All']")
+  // if (allLink.length > 0) {
+  //   await Promise.all([
+  //     allLink[0].click(),
+  //     page.waitForXPath("//span[text()='All']")
+  //   ])
+  // }
 
   // Unfortunately the AJAX request is all messed up, so we'll need to scrape the UI
 
@@ -75,7 +78,7 @@ exports.scraperMain = async(page, input) => {
 
   /** @type {SearchResult[]} */
   const results = []
-  for await (const resultElement of resultElements) {
+  for (const resultElement of resultElements) {
     /** @type {SearchResult} */
     const result = {
       departureDateTime: "",
@@ -96,7 +99,8 @@ exports.scraperMain = async(page, input) => {
     // Arrival time is a bit annoying because the div might have both a time and date, or just a time
     const rawArrivalTime = await xPathInnerText(".//table/*//td[3]/div[1]", resultElement)
     let arrivalDateTime = ""
-    for await (const month of months) {
+
+    for (const month of months) {
       if (rawArrivalTime.indexOf(month) > -1) {
         const rawArrivalTimeWhenBoth = await xPathInnerText(".//table/*//td[3]/div[1]/div[1]", resultElement)
         const rawArrivalDateWhenBoth = await xPathInnerText(".//table/*//td[3]/div[1]/div[2]", resultElement)

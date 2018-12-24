@@ -6,7 +6,7 @@ export default class AwardWiz {
     this.config = AwardWiz.loadConfigAndUpdateDocument()
 
     this.cloud = new AWSProvider({
-      files: ["united.js", "aeroplan.js", "index.js", "package.json"],
+      files: ["ita.js", "index.js", "package.json"],  /*"united.js", "aeroplan.js"*/
       filesDir: "scrapers",
 
       accessKey: this.config.awsAccessKey,
@@ -59,11 +59,12 @@ export default class AwardWiz {
   async search() {
     this.gridView.grid.api.showLoadingOverlay()
 
+    /** @type {SearchQuery} */
     const searchParams = {
-      from: this.config.origin,
-      to: this.config.destination,
+      origin: this.config.origin,
+      destination: this.config.destination,
       date: this.config.date,
-      maxConnections: 1
+      maxConnections: 0
     }
 
     /** @type {Array<SearchResultWithService>} */
@@ -92,7 +93,7 @@ export default class AwardWiz {
       }
 
       // Individual status per scraper
-      const consoleLog = result.consoleLog.map(item => `[${item.date}] ${item.type} - ${item.text}`.replace("T", " ").replace("Z", "")).join("\n")
+      const consoleLog = result.error ? "" : result.consoleLog.map(item => `[${item.date}] ${item.type} - ${item.text}`.replace("T", " ").replace("Z", "")).join("\n")
       const statusLine = result.error ? `Error: ${result.error.name}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
       statusDiv.innerHTML = `${scraperParams.scraper} -
         ${statusLine} -
@@ -111,8 +112,9 @@ export default class AwardWiz {
 
     console.log("Starting search...")
     await Promise.all([
-      runScraper({scraper: "united", proxy: this.config.proxyUrl, params: searchParams}),
-      runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})})
+      runScraper({scraper: "ita", proxy: this.config.proxyUrl, params: searchParams})
+      //runScraper({scraper: "united", proxy: this.config.proxyUrl, params: searchParams}),
+      //runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})})
     ])
 
     console.log("Completed search.")
