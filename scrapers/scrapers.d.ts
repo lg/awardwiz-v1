@@ -1,8 +1,16 @@
 interface SearchResult {
-  fromDateTime: string
-  toDateTime: string
-  fromAirport: string
-  toAirport: string
+  /** When the flight departs, in the origin's time zone. Format is: YYYY-MM-DD HH-MM */
+  departureDateTime: string
+
+  /** When the flight arrives after all connections, in the destination's time zone. Format is: YYYY-MM-DD HH-MM */
+  arrivalDateTime: string
+
+  /** Origin airport code. */
+  origin: string
+
+  /** Destination airport code. */
+  destination: string
+
   flights: string
   costs: {
     economy: SearchResultMilesAndCash
@@ -32,8 +40,13 @@ interface ScraperParams {
 }
 
 interface SearchQuery {
-  from: string
-  to: string
+  /** Origin airport code. */
+  origin: string
+
+  /** Destination airport code. */
+  destination: string
+
+  /** Date when the flight should depart. Format: YYYY-MM-DD */
   date: string
   maxConnections: number
 }
@@ -62,6 +75,19 @@ interface LogItem {
   text: string
 }
 
+/**
+ * A scraper has the following attributes:
+ * - cashOnly: if true, this scraper is used to find routes only
+ *
+ * Ideally a scraper can do the following:
+ * - Region codes and airport codes used interchangeably when searching
+ * - All results on one page
+ * - No-navigate taxes and fees
+ * - No-navigate # of connections
+ * - No-navigate connection airports
+ * - No-navigate flight numbers
+ * - Ability to set number of maximum connections
+ */
 declare class Scraper {
   scraperMain(page: import("puppeteer").Page, searchQuery: SearchQuery): Promise<{searchResults: Array<SearchResult>}>
 }

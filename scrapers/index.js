@@ -81,7 +81,7 @@ const startPuppeteer = async headless => {
       // Use chromeAwsLambda params for proper compatibility on Lambda, but do not disable notifications
       // since some websites use this to detect headless browsers
       ...chromeAwsLambda.args.filter(checkParam => checkParam != "--disable-notifications"),
-      "--proxy-server=http://127.0.0.1:8203"
+      platform === "other" ? "" : "--proxy-server=http://127.0.0.1:8203"
     ],
 
     executablePath: await chromeAwsLambda.executablePath,

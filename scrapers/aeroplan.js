@@ -33,12 +33,12 @@ exports.scraperMain = async(page, input) => {
 
   console.log("Setting origin...")
   await waitAndClick("div[data-automation=one-way-from-location]")
-  await page.keyboard.type(input.from)
+  await page.keyboard.type(input.origin)
   await waitAndClick("div[data-automation=one-way-from-location] div[data-selectable]")
 
   console.log("Setting destination...")
   await waitAndClick("div[data-automation=one-way-to-location]")
-  await page.keyboard.type(input.to)
+  await page.keyboard.type(input.destination)
   await waitAndClick("div[data-automation=one-way-to-location] div[data-selectable]")
 
   console.log("Turning off 'Compare to AirCanada.com' option...")
@@ -74,13 +74,15 @@ const standardizeResults = aeroplanTrip => {
   // Aeroplan has two modes (basically Saver and Standard from United), this checks for that second type
   flights.push(...(aeroplanTrip.NormalResults.product[1].tripComponent[0].ODoption || []))
 
+  /** @type {SearchResult[]} */
   const results = []
   for (const flight of flights) {
+    /** @type {SearchResult} */
     let result = {
-      fromDateTime: flight.segment[0].departureDateTime.toString().replace("T", " "),
-      toDateTime: flight.segment[flight.segment.length - 1].arrivalDateTime.toString().replace("T", " "),
-      fromAirport: flight.segment[0].origin,
-      toAirport: flight.segment[flight.segment.length - 1].destination,
+      departureDateTime: flight.segment[0].departureDateTime.toString().replace("T", " "),
+      arrivalDateTime: flight.segment[flight.segment.length - 1].arrivalDateTime.toString().replace("T", " "),
+      origin: flight.segment[0].origin,
+      destination: flight.segment[flight.segment.length - 1].destination,
       flights: "",
       costs: {
         economy: {miles: null, cash: null},
@@ -96,7 +98,7 @@ const standardizeResults = aeroplanTrip => {
     // Look if we already have this entry, and if so, switch to it
     let foundPrevResult = false
     for (const checkResult of results) {
-      if (checkResult.fromDateTime === result.fromDateTime && checkResult.flights === result.flights) {
+      if (checkResult.departureDateTime === result.departureDateTime && checkResult.flights === result.flights) {
         foundPrevResult = true
         result = checkResult
         break

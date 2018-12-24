@@ -16,7 +16,7 @@ exports.scraperMain = async(page, input) => {
   else if (input.maxConnections === 1)
     maxConnectionsCode = 3
 
-  await page.goto(`https://www.united.com/ual/en/us/flight-search/book-a-flight/results/awd?f=${input.from}&t=${input.to}&d=${input.date}&tt=1&at=1&sc=${maxConnectionsCode}&px=1&taxng=1&idx=1`)
+  await page.goto(`https://www.united.com/ual/en/us/flight-search/book-a-flight/results/awd?f=${input.origin}&t=${input.destination}&d=${input.date}&tt=1&at=1&sc=${maxConnectionsCode}&px=1&taxng=1&idx=1`)
 
   console.log("Waiting for JSON results...")
   const response = await page.waitForResponse("https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/awd", {timeout: 90000})
@@ -33,14 +33,15 @@ exports.scraperMain = async(page, input) => {
  * @param {number} filterMaxConnections
  */
 const standardizeResults = (unitedTrip, filterMaxConnections) => {
+  /** @type {SearchResult[]} */
   const results = []
   for (const flight of unitedTrip.Flights) {
     /** @type {SearchResult} */
     const result = {
-      fromDateTime: monthDayYearToYearMonthDayDateTime(flight.DepartDateTime),
-      toDateTime: monthDayYearToYearMonthDayDateTime(flight.LastDestinationDateTime),
-      fromAirport: flight.Origin,
-      toAirport: flight.LastDestination.Code,
+      departureDateTime: monthDayYearToYearMonthDayDateTime(flight.DepartDateTime),
+      arrivalDateTime: monthDayYearToYearMonthDayDateTime(flight.LastDestinationDateTime),
+      origin: flight.Origin,
+      destination: flight.LastDestination.Code,
       flights: `${flight.OperatingCarrier}${flight.FlightNumber}`,
       costs: {
         economy: {miles: null, cash: null},
