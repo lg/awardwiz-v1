@@ -92,10 +92,9 @@ export default class AwardWizGrid {
     const gridOptions = {
       columnDefs: [
         {headerName: "Service", field: "service", width: 100},
-        {headerName: "Origin Time", field: "fromDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, width: 110, sort: "asc"},
-        {headerName: "Dest Time", field: "toDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, width: 110},
-        {headerName: "Airports", field: "airports", valueGetter: params => `${params.data.fromAirport} -> ${params.data.toAirport}`, width: 100},
-        {headerName: "Flights", field: "flights"},
+        {headerName: "Depart Time", field: "departureDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, width: 110, sort: "asc"},
+        {headerName: "Arrive Time", field: "arrivalDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, width: 110},
+        {headerName: "Airports", field: "airports", valueGetter: params => `${params.data.origin} -> ${params.data.destination}`, width: 100},
         {headerName: "Economy", field: "costs.economy.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110},
         {headerName: "Business", field: "costs.business.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110},
         {headerName: "First", field: "costs.first.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110}
