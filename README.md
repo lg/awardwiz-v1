@@ -50,6 +50,11 @@ exports.scraperMain = async(page, input) => {
 
 Put a breakpoint on that `return` line. Then go to the `scrapers/debug.js` file and change the parameters to be for your new scraper. Start the `Debug scraper` launcher and wait for the breakpoint to get hit. Once it does, you're in the right context and figure out the commands you'll need to issue Puppeteer to properly scrape what you need.
 
+Some tips about scraping results from sites:
+- Take good account of the different ways to search, some are easier to automate than others (front page of the airline vs an "advanced" search vs a mobile view vs a logged-in view on either of these).
+- Consider the different ways it can return results. Aside from the suggestions on the previous point, look for options like time-bars which may expose more flight info without the need for more requests.
+- Sometimes you can just intercept the results json as it comes, that way you don't need to even scrape. United and Aeroplan work this way.
+
 ## Future
 
 - add GCP, Azure, Apify and other cloud function providers

@@ -11,12 +11,26 @@ interface SearchResult {
   /** Destination airport code. */
   destination: string
 
-  flights: string
+  /** Miles and/or cash required. */
   costs: {
     economy: SearchResultMilesAndCash
     business: SearchResultMilesAndCash
     first: SearchResultMilesAndCash
   }
+
+  /** Airline name. Examples: American, Air Canada */
+  airlineName?: string
+
+  /** Flight number with airline code. Examples: AC123 */
+  flightNo?: string
+
+  /** Duration of the flight. Example: 5h 32m */
+  duration?: string
+
+  /** The type of aircraft for the flight. Example: Airbus A320 */
+  aircraft?: string
+
+  flights?: string
 }
 
 interface SearchResultMilesAndCash {
