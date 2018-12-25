@@ -10,7 +10,7 @@ const main = async() => {
     params: {
       origin: "LAX",
       destination: "JFK",
-      date: "2018-12-25",
+      date: "2019-02-25",
       maxConnections: 0
     }
   })
