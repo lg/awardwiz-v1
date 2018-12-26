@@ -26,8 +26,9 @@ export default class AwardWizGrid {
 
   /** @param {import("AgGrid").ValueFormatterParams} params */
   static dateTimeFormatter(params) {
-    const formatter = new Intl.DateTimeFormat("en-US", {month: "numeric", day: "numeric", hour: "numeric", minute: "numeric"})
-    return formatter.format(new Date(params.value))
+    const hourMinuteFormatter = new Intl.DateTimeFormat("en-US", {hour: "numeric", minute: "numeric"})
+    const dayDiff = (new Date(params.value.substr(0, 10)).valueOf() - new Date(params.data.departureDateTime.substr(0, 10)).valueOf()) / 86400000
+    return `${dayDiff === 0 ? "" : "("}${dayDiff > 0 ? "+" : ""}${dayDiff === 0 ? "" : `${dayDiff}) `}${hourMinuteFormatter.format(new Date(params.value))}`
   }
 
   /** @param {import("AgGrid").ValueFormatterParams} params */
@@ -88,13 +89,26 @@ export default class AwardWizGrid {
   * @param {HTMLDivElement} gridDiv
   */
   configureGrid(gridDiv) {
+    const style = document.createElement("style")
+    style.type = "text/css"
+    style.innerHTML = `
+      .ag-cell {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+      }
+      .ag-header-cell {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+      }
+    `
+    document.getElementsByTagName("head")[0].appendChild(style)
+
     /** @type {import("AgGrid").GridOptions} */
     const gridOptions = {
       columnDefs: [
-        {headerName: "Service", field: "service", width: 100},
-        {headerName: "Depart Time", field: "departureDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, width: 110, sort: "asc"},
-        {headerName: "Arrive Time", field: "arrivalDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, width: 110},
-        {headerName: "Airports", field: "airports", valueGetter: params => `${params.data.origin} -> ${params.data.destination}`, width: 100},
+        {headerName: "Flight", field: "flightNo", width: 70, tooltip: (params) => `${params.data.airline} flight ${params.data.flightNo.substr(3)}`},
+        {headerName: "Depart", field: "departureDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, tooltipField: "departureDateTime", width: 90, sort: "asc", cellStyle: {textAlign: "right"}},
+        {headerName: "Arrive", field: "arrivalDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, tooltipField: "arrivalDateTime", width: 90, cellStyle: {textAlign: "right"}},
         {headerName: "Economy", field: "costs.economy.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110},
         {headerName: "Business", field: "costs.business.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110},
         {headerName: "First", field: "costs.first.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110}

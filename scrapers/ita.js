@@ -139,9 +139,9 @@ exports.scraperMain = async(page, input) => {
     result.aircraft = await xPathInnerText(".//table[2]/tbody[1]/tr[3]/td[2]/div[1]", detailsElement)
 
     const [airlineName, flightNumber] = (await xPathInnerText(".//div[1]", detailsElement)).split(" flight ")
-    result.airlineName = airlineName
+    result.airline = airlineName
     const airlineCode = await xPathInnerText(".//div[3]/div[1]/div[1]/div[1]/div[1]/div[1]", rowElement)
-    result.flightNo = `${airlineCode}${flightNumber}`
+    result.flightNo = `${airlineCode} ${flightNumber}`
 
     const departureTime24 = convert12HourTo24Hour(await xPathInnerText(".//table[1]/tbody[1]/tr[1]/td[4]/div[1]", detailsElement))
     const departureDateStr = await xPathInnerText(".//table[1]/tbody[1]/tr[1]/td[3]/div[1]", detailsElement)

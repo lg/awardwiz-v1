@@ -8,14 +8,7 @@ exports.scraperMain = async(page, input) => {
 
   console.log("Searching for flights...")
 
-  if (typeof input.maxConnections === "undefined" || input.maxConnections === null)
-    input.maxConnections = 0
-  let maxConnectionsCode = 7
-  if (input.maxConnections === 0)
-    maxConnectionsCode = 1
-  else if (input.maxConnections === 1)
-    maxConnectionsCode = 3
-
+  const maxConnectionsCode = 1  // only support non-stop flights for now. other valid codes: 3 (1 connection), 7 (2 connections)
   await page.goto(`https://www.united.com/ual/en/us/flight-search/book-a-flight/results/awd?f=${input.origin}&t=${input.destination}&d=${input.date}&tt=1&at=1&sc=${maxConnectionsCode}&px=1&taxng=1&idx=1`)
 
   console.log("Waiting for JSON results...")
@@ -42,7 +35,9 @@ const standardizeResults = (unitedTrip, filterMaxConnections) => {
       arrivalDateTime: monthDayYearToYearMonthDayDateTime(flight.LastDestinationDateTime),
       origin: flight.Origin,
       destination: flight.LastDestination.Code,
-      flights: `${flight.OperatingCarrier}${flight.FlightNumber}`,
+      flightNo: `${flight.MarketingCarrier} ${flight.FlightNumber}`,
+      airline: flight.MarketingCarrierDescription,
+      aircraft: flight.EquipmentDisclosures.EquipmentDescription,
       costs: {
         economy: {miles: null, cash: null},
         business: {miles: null, cash: null},
@@ -53,11 +48,6 @@ const standardizeResults = (unitedTrip, filterMaxConnections) => {
     // United's API has a way of returning flights with more connections than asked
     if (flight.StopsandConnections > filterMaxConnections)
       continue
-
-    // Append all connections to flight list
-    if (flight.Connections)
-      for (const connection of flight.Connections)
-        result.flights += `,${connection.OperatingCarrier}${connection.FlightNumber}`
 
     // Convert united format to standardized miles and cash formats
     for (const product of flight.Products) {

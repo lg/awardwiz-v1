@@ -6,7 +6,7 @@ export default class AwardWiz {
     this.config = AwardWiz.loadConfigAndUpdateDocument()
 
     this.cloud = new AWSProvider({
-      files: ["ita.js", "index.js", "package.json"],  /*"united.js", "aeroplan.js"*/
+      files: ["ita.js", "united.js", "aeroplan.js", "index.js", "package.json"],
       filesDir: "scrapers",
 
       accessKey: this.config.awsAccessKey,
@@ -76,6 +76,8 @@ export default class AwardWiz {
 
     /** @param {ScraperParams} scraperParams */
     const runScraper = async(scraperParams) => {
+      const startTime = (new Date()).valueOf()
+
       // Keep a per-scraper status visible
       const statusDiv = document.createElement("div")
       statusDiv.innerHTML = `Searching ${scraperParams.scraper}...`
@@ -96,7 +98,7 @@ export default class AwardWiz {
       const consoleLog = result.error ? "" : result.consoleLog.map(item => `[${item.date}] ${item.type} - ${item.text}`.replace("T", " ").replace("Z", "")).join("\n")
       const statusLine = result.error ? `Error: ${result.error.name}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
       statusDiv.innerHTML = `${scraperParams.scraper} -
-        ${statusLine} -
+        ${statusLine} (${((new Date()).valueOf() - startTime) / 1000}s) -
         <a href="data:image/jpeg;base64,${result.screenshot}">show screenshot</a>
         <a href="data:text/plain;base64,${btoa(consoleLog)}">show log</a>
         <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}">show result</a> (right click to open)`
@@ -112,8 +114,8 @@ export default class AwardWiz {
 
     console.log("Starting search...")
     await Promise.all([
-      runScraper({scraper: "ita", proxy: this.config.proxyUrl, params: searchParams})
-      //runScraper({scraper: "united", proxy: this.config.proxyUrl, params: searchParams}),
+      runScraper({scraper: "ita", proxy: this.config.proxyUrl, params: searchParams}),
+      runScraper({scraper: "united", proxy: this.config.proxyUrl, params: searchParams})
       //runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})})
     ])
 
