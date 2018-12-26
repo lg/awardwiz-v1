@@ -24,7 +24,10 @@ Open Console (⌥-⌘-C) to view status<br/><br/>
 <label for="origin">origin: </label><input type="text" id="origin" value=""/> (ex. SFO)<br/>
 <label for="destination">destination: </label><input type="text" id="destination" value=""/> (ex. YOW)<br/>
 <label for="date">date: </label><input type="text" id="date" value=""/> (yyyy-mm-dd)<br/>
-<br/>
+<input type="checkbox" id="searchITA" value=""/><label for="searchITA">ita</label>&nbsp;
+<input type="checkbox" id="searchUnited" value=""/><label for="searchUnited">united</label>&nbsp;
+<input type="checkbox" id="searchAeroplan" value=""/><label for="searchAeroplan">aeroplan</label>&nbsp;
+<br/><br/>
 <button onclick="awardwiz.prep()">prep</button>
 <button onclick="awardwiz.search()">search</button>
 <div id="searchStatus" style="font-size:8pt">(enter details and hit Search above)</div>
