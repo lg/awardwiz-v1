@@ -35,7 +35,11 @@ export default class AwardWiz {
       aeroplanPassword: localStorage.getItem("aeroplanPassword") || "",
       origin: localStorage.getItem("origin") || "",
       destination: localStorage.getItem("destination") || "",
-      date: localStorage.getItem("date") || ""
+      date: localStorage.getItem("date") || "",
+
+      searchITA: localStorage.getItem("searchITA") || "true",
+      searchUnited: localStorage.getItem("searchUnited") || "true",
+      searchAeroplan: localStorage.getItem("searchAeroplan") || "true"
     }
 
     for (const configToSave of Object.getOwnPropertyNames(config)) {
@@ -43,9 +47,18 @@ export default class AwardWiz {
       if (!element)
         continue
 
-      element.value = config[configToSave]
-      element.addEventListener("change", () => (config[element.id] = element.value))
-      element.addEventListener("change", () => localStorage.setItem(element.id, element.value))
+      if (configToSave.startsWith("search"))
+        element.checked = config[configToSave] === "true"
+      else
+        element.value = config[configToSave]
+
+      element.addEventListener("change", () => {
+        if (configToSave.startsWith("search"))
+          config[element.id] = element.checked ? "true" : "false"
+        else
+          config[element.id] = element.value
+        localStorage.setItem(element.id, config[element.id])
+      })
     }
 
     return config
@@ -113,11 +126,14 @@ export default class AwardWiz {
     }
 
     console.log("Starting search...")
-    await Promise.all([
-      runScraper({scraper: "ita", proxy: this.config.proxyUrl, params: searchParams}),
-      runScraper({scraper: "united", proxy: this.config.proxyUrl, params: searchParams})
-      //runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})})
-    ])
+    const queries = []
+    if (this.config.searchITA === "true")
+      queries.push(runScraper({scraper: "ita", proxy: this.config.proxyUrl, params: searchParams}))
+    if (this.config.searchUnited === "true")
+      queries.push(runScraper({scraper: "united", proxy: this.config.proxyUrl, params: searchParams}))
+    if (this.config.searchAeroplan === "true")
+      queries.push(runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})}))
+    await Promise.all(queries)
 
     console.log("Completed search.")
     this.gridView.grid.api.hideOverlay()

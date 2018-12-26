@@ -13,6 +13,10 @@ interface AwardWizConfig {
   origin: string
   destination: string
   date: string
+
+  searchITA: string
+  searchUnited: string
+  searchAeroplan: string
 }
 
 interface CloudProviderConfig {
