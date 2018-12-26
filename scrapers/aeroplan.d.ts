@@ -2,7 +2,7 @@
 //
 // To generate:
 // - Run scraper in debug mode and breakpoint on `standardizeResults`
-// - Clear the VSCode console, JSON.stringify(THE_VARIABLE_HERE), right click and copy all
+// - Clear the VSCode console, JSON.stringify(THE_VARIABLE_HERE, null, 2), right click and copy all
 // - Populate the text at the bottom of this file
 // - Go to https://jvilk.com/MakeTypes/, name it, paste the JSON and paste the output here
 // - Fix any key names which are not valid with quotes

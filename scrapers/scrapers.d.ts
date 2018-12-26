@@ -19,9 +19,9 @@ interface SearchResult {
   }
 
   /** Airline name. Examples: American, Air Canada */
-  airlineName?: string
+  airline?: string
 
-  /** Flight number with airline code. Examples: AC123 */
+  /** Flight number with airline code. Examples: AC 123, SQ 1 */
   flightNo?: string
 
   /** Duration of the flight. Example: 5h 32m */
