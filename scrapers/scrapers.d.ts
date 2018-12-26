@@ -38,8 +38,19 @@ interface SearchResultMilesAndCash {
   cash: number | null
 }
 
-interface SearchResultWithService extends SearchResult {
-  service: string
+interface SearchResultMilesAndCashWithScraper extends SearchResultMilesAndCash {
+  scraper?: string
+}
+
+interface SearchResultRow extends SearchResult {
+  scrapersUsed: {[scraper: string]: SearchResult}
+
+  /** The cheapest result for each of the classes of service */
+  costs: {
+    economy: SearchResultMilesAndCashWithScraper
+    business: SearchResultMilesAndCashWithScraper
+    first: SearchResultMilesAndCashWithScraper
+  }
 }
 
 interface ScraperHashCheckParams {

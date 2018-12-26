@@ -80,8 +80,12 @@ export default class AwardWiz {
       maxConnections: 0
     }
 
-    /** @type {Array<SearchResultWithService>} */
-    let allResults = []
+    /** @type {Array<SearchResultRow>} */
+    const resultRows = []
+
+    /** @type {Object<string, Array<SearchResult>>} */
+    const scraperResults = {}
+
     const statusElement = /** @type {HTMLDivElement?} */ (document.getElementById("searchStatus"))
     if (!statusElement)
       throw new Error("Missing status div")
@@ -89,40 +93,73 @@ export default class AwardWiz {
 
     /** @param {ScraperParams} scraperParams */
     const runScraper = async(scraperParams) => {
+      const scraperName = scraperParams.scraper
       const startTime = (new Date()).valueOf()
 
       // Keep a per-scraper status visible
       const statusDiv = document.createElement("div")
-      statusDiv.innerHTML = `Searching ${scraperParams.scraper}...`
+      statusDiv.innerHTML = `Searching ${scraperName}...`
       statusElement.appendChild(statusDiv)
 
       // Wait for scraper results
-      console.log(`Running scraper '${scraperParams.scraper}'...`)
+      console.log(`Running scraper '${scraperName}'...`)
 
       const result = await this.cloud.run(scraperParams)
       if (result.scraperResult) {
-        console.log(`Scraper '${scraperParams.scraper}' returned ${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}.`)
+        console.log(`Scraper '${scraperName}' returned ${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}.`)
       } else {
-        console.log(`Scraper '${scraperParams.scraper}' errored.`)
+        console.log(`Scraper '${scraperName}' errored.`)
         result.scraperResult = {searchResults: []}
       }
 
       // Individual status per scraper
       const consoleLog = result.error ? "" : result.consoleLog.map(item => `[${item.date}] ${item.type} - ${item.text}`.replace("T", " ").replace("Z", "")).join("\n")
       const statusLine = result.error ? `Error: ${result.error.name}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
-      statusDiv.innerHTML = `${scraperParams.scraper} -
+      statusDiv.innerHTML = `${scraperName} -
         ${statusLine} (${((new Date()).valueOf() - startTime) / 1000}s) -
         <a href="data:image/jpeg;base64,${result.screenshot}">show screenshot</a>
         <a href="data:text/plain;base64,${btoa(consoleLog)}">show log</a>
         <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}">show result</a> (right click to open)`
 
-      // Append results to existing results w/ service name
-      allResults = allResults.concat(result.scraperResult.searchResults.map(searchResult => {
-        const newResult = /** @type {SearchResultWithService} */ (searchResult)
-        newResult.service = scraperParams.scraper
-        return newResult
-      }))
-      this.gridView.grid.api.setRowData(allResults)
+      // Store and merge the results into the table
+      scraperResults[scraperName] = result.scraperResult.searchResults
+      for (const newFlight of scraperResults[scraperName]) {
+        let foundRow = false
+        for (const checkResultRow of resultRows) {
+          // Lets hope that two flights arent at the exact same times...
+          if (checkResultRow.departureDateTime === newFlight.departureDateTime && checkResultRow.arrivalDateTime === newFlight.arrivalDateTime) {
+            foundRow = true
+            checkResultRow.scrapersUsed[scraperName] = newFlight
+
+            for (const className of ["economy", "business", "first"]) {
+              if (newFlight.costs[className].miles !== null) {
+                if (checkResultRow.costs[className].miles === null || (newFlight.costs[className].miles < checkResultRow.costs[className].miles)) {
+                  // A better match was found
+                  checkResultRow.costs[className].miles = newFlight.costs[className].miles
+                  checkResultRow.costs[className].cash = newFlight.costs[className].cash
+                  checkResultRow.costs[className].scraper = scraperName
+                }
+              }
+            }
+            break
+          }
+        }
+        if (!foundRow) {
+          /** @type {SearchResultRow} */
+          const newRow = {
+            scrapersUsed: {[scraperName]: newFlight},
+            ...newFlight
+          }
+
+          // We'll assume this is the cheapest mileage option since it's the first
+          newRow.costs.economy.scraper = scraperName
+          newRow.costs.business.scraper = scraperName
+          newRow.costs.first.scraper = scraperName
+
+          resultRows.push(newRow)
+        }
+      }
+      this.gridView.grid.api.setRowData(resultRows)
     }
 
     console.log("Starting search...")
