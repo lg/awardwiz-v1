@@ -11,7 +11,7 @@ export default class AwardWizGrid {
   }
 
   /** @param {import("AgGrid").ValueFormatterParams} params */
-  static milesAndCashFormatter(params) {
+  static costFormatter(params) {
     if (!params.colDef.headerName)
       return ""
 
@@ -19,9 +19,9 @@ export default class AwardWizGrid {
     if (!cost.miles)
       return ""
 
-    const cashFormatter = new Intl.NumberFormat("en-US", {style: "currency", currency: "USD", minimumFractionDigits: 2})
-    const milesFormatter = new Intl.NumberFormat("en-US")
-    return `${milesFormatter.format(cost.miles / 1000)}k + ${cashFormatter.format(cost.cash)}`
+    const cashFormatter = new Intl.NumberFormat("en-US", {style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0})
+    const milesFormatter = new Intl.NumberFormat("en-US", {maximumFractionDigits: 1})
+    return `(${cost.scraper}) ${cashFormatter.format(cost.cash)} + ${milesFormatter.format(cost.miles / 1000)}k`
   }
 
   /** @param {import("AgGrid").ValueFormatterParams} params */
@@ -34,8 +34,8 @@ export default class AwardWizGrid {
   /** @param {import("AgGrid").ValueFormatterParams} params */
   static milesAndCashStyler(params) {
     if (params.value)
-      return {backgroundColor: "#D5F5E3"}
-    return null
+      return {textAlign: "right", backgroundColor: "#D5F5E3"}
+    return {textAlign: "right"}
   }
 
   /** Sort empty/null values as infinite
@@ -109,9 +109,9 @@ export default class AwardWizGrid {
         {headerName: "Flight", field: "flightNo", width: 70, tooltip: (params) => `${params.data.airline} flight ${params.data.flightNo.substr(3)}`},
         {headerName: "Depart", field: "departureDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, tooltipField: "departureDateTime", width: 90, sort: "asc", cellStyle: {textAlign: "right"}},
         {headerName: "Arrive", field: "arrivalDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, tooltipField: "arrivalDateTime", width: 90, cellStyle: {textAlign: "right"}},
-        {headerName: "Economy", field: "costs.economy.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110},
-        {headerName: "Business", field: "costs.business.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110},
-        {headerName: "First", field: "costs.first.miles", valueFormatter: AwardWizGrid.milesAndCashFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 110}
+        {headerName: "Economy", field: "costs.economy.miles", valueFormatter: AwardWizGrid.costFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 150},
+        {headerName: "Business", field: "costs.business.miles", valueFormatter: AwardWizGrid.costFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 150},
+        {headerName: "First", field: "costs.first.miles", valueFormatter: AwardWizGrid.costFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 150}
       ],
       enableSorting: true,
       enableFilter: true,
