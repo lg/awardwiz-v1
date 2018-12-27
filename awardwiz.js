@@ -126,14 +126,33 @@ export default class AwardWiz {
       for (const newFlight of scraperResults[scraperName]) {
         let foundRow = false
         for (const checkResultRow of resultRows) {
-          // Lets hope that two flights arent at the exact same times...
           if (checkResultRow.departureDateTime === newFlight.departureDateTime && checkResultRow.arrivalDateTime === newFlight.arrivalDateTime) {
             foundRow = true
             checkResultRow.scrapersUsed[scraperName] = newFlight
 
             for (const className of ["economy", "business", "first"]) {
               if (newFlight.costs[className].miles !== null) {
-                if (checkResultRow.costs[className].miles === null || (newFlight.costs[className].miles < checkResultRow.costs[className].miles)) {
+                let overwrite = false
+                if (newFlight.costs[className].miles < checkResultRow.costs[className].miles)
+                  overwrite = true
+
+                // This is the first time we add miles into an existing row
+                if (newFlight.costs[className].miles > 0 && checkResultRow.costs[className].miles === null)
+                  overwrite = true
+
+                // If miles are the same on this new one, select it if it's less cash than the existing one
+                // or if it actually has a cash amount.
+                if (newFlight.costs[className].miles === checkResultRow.costs[className].miles) {
+                  if (newFlight.costs[className].cash !== null) {
+                    if (checkResultRow.costs[className].cash === null) {
+                      overwrite = true
+                    } else if (newFlight.costs[className].cash < checkResultRow.costs[className].cash) {
+                      overwrite = true
+                    }
+                  }
+                }
+
+                if (overwrite) {
                   // A better match was found
                   checkResultRow.costs[className].miles = newFlight.costs[className].miles
                   checkResultRow.costs[className].cash = newFlight.costs[className].cash
@@ -148,13 +167,14 @@ export default class AwardWiz {
           /** @type {SearchResultRow} */
           const newRow = {
             scrapersUsed: {[scraperName]: newFlight},
-            ...newFlight
+            ...JSON.parse(JSON.stringify(newFlight))    // copy the object
           }
 
           // We'll assume this is the cheapest mileage option since it's the first
-          newRow.costs.economy.scraper = scraperName
-          newRow.costs.business.scraper = scraperName
-          newRow.costs.first.scraper = scraperName
+          for (const className of ["economy", "business", "first"]) {
+            if (newRow.costs[className].miles !== null)
+              newRow.costs[className].scraper = scraperName
+          }
 
           resultRows.push(newRow)
         }

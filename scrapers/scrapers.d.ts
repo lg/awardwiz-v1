@@ -1,8 +1,8 @@
 interface SearchResult {
-  /** When the flight departs, in the origin's time zone. Format is: YYYY-MM-DD HH-MM */
+  /** When the flight departs, in the origin's time zone. Format is: YYYY-MM-DD HH:MM */
   departureDateTime: string
 
-  /** When the flight arrives after all connections, in the destination's time zone. Format is: YYYY-MM-DD HH-MM */
+  /** When the flight arrives after all connections, in the destination's time zone. Format is: YYYY-MM-DD HH:MM */
   arrivalDateTime: string
 
   /** Origin airport code. */
@@ -29,8 +29,6 @@ interface SearchResult {
 
   /** The type of aircraft for the flight. Example: Airbus A320 */
   aircraft?: string
-
-  flights?: string
 }
 
 interface SearchResultMilesAndCash {

@@ -94,7 +94,8 @@ exports.scraperMain = async(page, input) => {
 
   /** Returns the innerText of an XPath query on a page/element
    * @param {string} xPath
-   * @param {import("puppeteer").ElementHandle?} contextElement */
+   * @param {import("puppeteer").ElementHandle?} contextElement
+   * @returns {Promise<string>} */
   const xPathInnerText = async(xPath, contextElement = null) => {
     if (contextElement && !xPath.startsWith("."))
       throw new Error("When using a context XPath element, the path must start with a '.'")
@@ -131,7 +132,12 @@ exports.scraperMain = async(page, input) => {
         business: {miles: null, cash: null},
         first: {miles: null, cash: null}
       }
-    };
+    }
+
+    const airlineCode = await xPathInnerText(".//div[3]/div[1]/div[1]/div[1]/div[1]/div[1]", rowElement)
+    // Skip codeshares since the proper flights should be on the list anyways
+    if (airlineCode.endsWith("*"))
+      continue
 
     [result.origin, result.destination] = (await xPathInnerText(".//div[2]", rowElement)).split(" to ")
     result.costs.economy.cash = parseInt((await xPathInnerText(".//div[1]/button[1]/span[2]", rowElement)).replace("$", ""), 10)
@@ -140,7 +146,6 @@ exports.scraperMain = async(page, input) => {
 
     const [airlineName, flightNumber] = (await xPathInnerText(".//div[1]", detailsElement)).split(" flight ")
     result.airline = airlineName
-    const airlineCode = await xPathInnerText(".//div[3]/div[1]/div[1]/div[1]/div[1]/div[1]", rowElement)
     result.flightNo = `${airlineCode} ${flightNumber}`
 
     const departureTime24 = convert12HourTo24Hour(await xPathInnerText(".//table[1]/tbody[1]/tr[1]/td[4]/div[1]", detailsElement))
