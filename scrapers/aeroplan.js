@@ -77,13 +77,17 @@ const standardizeResults = aeroplanTrip => {
   /** @type {SearchResult[]} */
   const results = []
   for (const flight of flights) {
+    if (flight.segment.length > 1)
+      continue
+
     /** @type {SearchResult} */
     let result = {
-      departureDateTime: flight.segment[0].departureDateTime.toString().replace("T", " "),
-      arrivalDateTime: flight.segment[flight.segment.length - 1].arrivalDateTime.toString().replace("T", " "),
+      // Clean up format of flight times and also remove seconds
+      departureDateTime: flight.segment[0].departureDateTime.toString().replace("T", " ").substr(0, 16),
+      arrivalDateTime: flight.segment[flight.segment.length - 1].arrivalDateTime.toString().replace("T", " ").substr(0, 16),
+
       origin: flight.segment[0].origin,
       destination: flight.segment[flight.segment.length - 1].destination,
-      flights: "",
       costs: {
         economy: {miles: null, cash: null},
         business: {miles: null, cash: null},
@@ -91,14 +95,14 @@ const standardizeResults = aeroplanTrip => {
       }
     }
 
-    for (const segment of flight.segment)
-      result.flights += `,${segment.flightNo}`
-    result.flights = result.flights.substr(1)
+    result.flightNo = `${flight.segment[0].flightNo.substr(0, 2)} ${flight.segment[0].flightNo.substr(2)}`
+    result.aircraft = flight.segment[0].aircraft
+    result.airline = aeroplanTrip.NormalResults.filters.airlines[flight.segment[0].airline]
 
     // Look if we already have this entry, and if so, switch to it
     let foundPrevResult = false
     for (const checkResult of results) {
-      if (checkResult.departureDateTime === result.departureDateTime && checkResult.flights === result.flights) {
+      if (checkResult.departureDateTime === result.departureDateTime && checkResult.arrivalDateTime === result.arrivalDateTime) {
         foundPrevResult = true
         result = checkResult
         break
@@ -107,7 +111,7 @@ const standardizeResults = aeroplanTrip => {
 
     // The cabin code says the class of service. ME or MB means mixed.
     let cabin = "first"
-    if (flight.cabin.includes("E"))
+    if (flight.cabin.includes("E") || flight.cabin.includes("P"))   // E = economy, P = premium economy
       cabin = "economy"
     else if (flight.cabin.includes("B"))
       cabin = "business"
@@ -124,7 +128,7 @@ const standardizeResults = aeroplanTrip => {
     }
 
     // Aeroplan requires you hit up individual endpoints for the cash amount. Skip for now.
-    result.costs[cabin].cash = 99.99
+    result.costs[cabin].cash = null
 
     if (!foundPrevResult)
       results.push(result)
