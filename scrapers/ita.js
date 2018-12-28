@@ -81,32 +81,10 @@ exports.scraperMain = async(page, input) => {
   // Unfortunately the AJAX request is all messed up, so we'll need to scrape the UI
   console.log("Hovering all flights for details and parsing...")
 
-  /** Takes a 12-hour (1 or 2 digit hour) time, and converts it to 24-hour (2 digit hour)
-   * @param {string} twelveHour
-   * @returns {string} */
-  const convert12HourTo24Hour = twelveHour => {
-    const [rawHour, rawMinute] = twelveHour.split(":")
-    const [hour, minute] = [parseInt(rawHour, 10), parseInt(rawMinute.substr(0, 2), 10)]
-    if (twelveHour.toUpperCase().indexOf("AM") >= 0)
-      return `${(hour === 12 ? 0 : hour).toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-    return `${(hour === 12 ? 12 : hour + 12).toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-  }
-
-  /** Returns the innerText of an XPath query on a page/element
-   * @param {string} xPath
-   * @param {import("puppeteer").ElementHandle?} contextElement
-   * @returns {Promise<string>} */
-  const xPathInnerText = async(xPath, contextElement = null) => {
-    if (contextElement && !xPath.startsWith("."))
-      throw new Error("When using a context XPath element, the path must start with a '.'")
-    const [foundElement] = (await (contextElement || page).$x(xPath))
-    return page.evaluate(pageEl => pageEl.innerText, foundElement)
-  }
-
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
   /** @type {SearchResult[]} */
   const results = []
+  /** @type {string[]} */
+  const warnings = []
 
   // With this time-bar UI, the first step is to hover over all bars to get the flight
   // details added to the dom.
@@ -121,55 +99,121 @@ exports.scraperMain = async(page, input) => {
 
     const [detailsElement] = await page.$x("(//div[@class='popupContent']/div[1]/div[contains(text(), ' flight ')]/..)[last()]")
 
-    /** @type {SearchResult} */
-    const result = {
-      departureDateTime: "",
-      arrivalDateTime: "",
-      origin: "",
-      destination: "",
-      costs: {
-        economy: {miles: null, cash: null},
-        business: {miles: null, cash: null},
-        first: {miles: null, cash: null}
+    let result = null
+    try {
+      result = await getFlightFromRow(page, input, rowElement, detailsElement)
+    } catch (err) {
+      warnings.push(err.message)
+    }
+
+    if (result)
+      results.push(result)
+  }
+
+  // Kind of a hack, but sometimes when flights are really short, ITA doesn't return the airline
+  // code since it can't fit in their little bar graphic. Here we try to guess the code based on
+  // other results. The better way to do this would be to just have a lookup table that's hardcoded...
+  for (const result of results) {
+    if (result.flightNo && result.flightNo.startsWith("??")) {
+      for (const check of results) {
+        if (check.flightNo && !check.flightNo.startsWith("??") && result.airline === check.airline) {
+          result.flightNo = `${check.flightNo.substr(0, 2)}${result.flightNo.substr(2)}`
+          break
+        }
       }
     }
-
-    const airlineCode = await xPathInnerText(".//div[3]/div[1]/div[1]/div[1]/div[1]/div[1]", rowElement)
-    // Skip codeshares since the proper flights should be on the list anyways
-    if (airlineCode.endsWith("*"))
-      continue
-
-    [result.origin, result.destination] = (await xPathInnerText(".//div[2]", rowElement)).split(" to ")
-    result.costs.economy.cash = parseInt((await xPathInnerText(".//div[1]/button[1]/span[2]", rowElement)).replace("$", ""), 10)
-    result.duration = await xPathInnerText(".//table[2]/tbody[1]/tr[1]/td[2]/div[1]", detailsElement)
-    result.aircraft = await xPathInnerText(".//table[2]/tbody[1]/tr[3]/td[2]/div[1]", detailsElement)
-
-    const [airlineName, flightNumber] = (await xPathInnerText(".//div[1]", detailsElement)).split(" flight ")
-    result.airline = airlineName
-    result.flightNo = `${airlineCode} ${flightNumber}`
-
-    const departureTime24 = convert12HourTo24Hour(await xPathInnerText(".//table[1]/tbody[1]/tr[1]/td[4]/div[1]", detailsElement))
-    const departureDateStr = await xPathInnerText(".//table[1]/tbody[1]/tr[1]/td[3]/div[1]", detailsElement)
-    result.departureDateTime = `${input.date} ${departureTime24}`
-
-    const arrivalTime24 = convert12HourTo24Hour(await xPathInnerText(".//table[1]/tbody[1]/tr[2]/td[4]/div[1]", detailsElement))
-    const arrivalDateStr = await xPathInnerText(".//table[1]/tbody[1]/tr[2]/td[3]/div[1]", detailsElement)
-
-    const [departureMonthName] = departureDateStr.split(" ")
-    const [arrivalMonthName, arrivalDay] = arrivalDateStr.split(" ")
-
-    // Handle the year-change edge-case
-    let arrivalYear = parseInt(input.date.substr(0, 4), 10)  // Start it at the search year
-    if (departureMonthName === "Dec" && arrivalMonthName === "Jan") {
-      arrivalYear += 1
-    } else if (departureMonthName === "Jan" && arrivalMonthName === "Dec") {
-      arrivalYear -= 1
-    }
-    result.arrivalDateTime = `${arrivalYear.toString()}-${(months.indexOf(arrivalMonthName) + 1).toString().padStart(2, "0")}-${arrivalDay.padStart(2, "0")} ${arrivalTime24}`
-
-    results.push(result)
   }
 
   console.log("Done.")
-  return {searchResults: results}
+  return {searchResults: results, warnings}
+}
+
+/** after you've already hovered over the bar, retrieve the details from the flight
+ * @param {import("puppeteer").Page} page
+ * @param {SearchQuery} input
+ * @param {import("puppeteer").ElementHandle<Element>} rowElement
+ * @param {import("puppeteer").ElementHandle<Element>} detailsElement
+ * @returns {Promise<SearchResult | null>}
+ */
+const getFlightFromRow = async(page, input, rowElement, detailsElement) => {
+  /** @type {SearchResult} */
+  const result = {
+    departureDateTime: "",
+    arrivalDateTime: "",
+    origin: "",
+    destination: "",
+    costs: {
+      economy: {miles: null, cash: null},
+      business: {miles: null, cash: null},
+      first: {miles: null, cash: null}
+    }
+  }
+
+  let airlineCode = null
+  try {
+    airlineCode = await xPathInnerText(page, ".//div[3]/div[1]/div[1]/div[1]/div[1]/div[1]", rowElement, "2-letter airline code")
+    // Skip codeshares since the proper flights should be on the list anyways
+    if (airlineCode.endsWith("*"))
+      return null
+  } catch (err) {
+    airlineCode = "??"
+  }
+
+  [result.origin, result.destination] = (await xPathInnerText(page, ".//div[2]", rowElement, "origin/destination of flight")).split(" to ")
+  result.costs.economy.cash = parseInt((await xPathInnerText(page, ".//div[1]/button[1]/span[2]", rowElement, "economy cash amount")).replace("$", ""), 10)
+  result.duration = await xPathInnerText(page, ".//table[2]/tbody[1]/tr[1]/td[2]/div[1]", detailsElement, "flight duration")
+  result.aircraft = await xPathInnerText(page, ".//table[2]/tbody[1]/tr[3]/td[2]/div[1]", detailsElement, "aircraft type used for flight")
+
+  const [airlineName, flightNumber] = (await xPathInnerText(page, ".//div[1]", detailsElement, "airline name and flight number")).split(" flight ")
+  result.airline = airlineName
+  result.flightNo = `${airlineCode} ${flightNumber}`
+
+  const departureTime24 = convert12HourTo24Hour(await xPathInnerText(page, ".//table[1]/tbody[1]/tr[1]/td[4]/div[1]", detailsElement, "departure time"))
+  const departureDateStr = await xPathInnerText(page, ".//table[1]/tbody[1]/tr[1]/td[3]/div[1]", detailsElement, "departure date")
+  result.departureDateTime = `${input.date} ${departureTime24}`
+
+  const arrivalTime24 = convert12HourTo24Hour(await xPathInnerText(page, ".//table[1]/tbody[1]/tr[2]/td[4]/div[1]", detailsElement, "arrival time"))
+  const arrivalDateStr = await xPathInnerText(page, ".//table[1]/tbody[1]/tr[2]/td[3]/div[1]", detailsElement, "arrival date")
+
+  const [departureMonthName] = departureDateStr.split(" ")
+  const [arrivalMonthName, arrivalDay] = arrivalDateStr.split(" ")
+
+  // Handle the year-change edge-case
+  let arrivalYear = parseInt(input.date.substr(0, 4), 10)  // Start it at the search year
+  if (departureMonthName === "Dec" && arrivalMonthName === "Jan") {
+    arrivalYear += 1
+  } else if (departureMonthName === "Jan" && arrivalMonthName === "Dec") {
+    arrivalYear -= 1
+  }
+
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  result.arrivalDateTime = `${arrivalYear.toString()}-${(months.indexOf(arrivalMonthName) + 1).toString().padStart(2, "0")}-${arrivalDay.padStart(2, "0")} ${arrivalTime24}`
+
+  return result
+}
+
+/** Takes a 12-hour (1 or 2 digit hour) time, and converts it to 24-hour (2 digit hour)
+ * @param {string} twelveHour
+ * @returns {string} */
+const convert12HourTo24Hour = twelveHour => {
+  const [rawHour, rawMinute] = twelveHour.split(":")
+  const [hour, minute] = [parseInt(rawHour, 10), parseInt(rawMinute.substr(0, 2), 10)]
+  if (twelveHour.toUpperCase().indexOf("AM") >= 0)
+    return `${(hour === 12 ? 0 : hour).toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+  return `${(hour === 12 ? 12 : hour + 12).toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+}
+
+/** Returns the innerText of an XPath query on a page/element
+ * @param {import("puppeteer").Page} page
+ * @param {string} xPath
+ * @param {import("puppeteer").ElementHandle | null} contextElement
+ * @param {string} description when XPath isn't found, throw this description
+ * @returns {Promise<string>} */
+const xPathInnerText = async(page, xPath, contextElement, description) => {
+  if (contextElement && !xPath.startsWith("."))
+    throw new Error("When using a context XPath element, the path must start with a '.'")
+  const [foundElement] = (await (contextElement || page).$x(xPath))
+  if (!foundElement)
+    throw new Error(`Unable to find XPath "${xPath}": ${description}`)
+  return page.evaluate(pageEl => pageEl.innerText, foundElement)
 }

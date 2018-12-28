@@ -71,7 +71,6 @@ interface SearchQuery {
 
   /** Date when the flight should depart. Format: YYYY-MM-DD */
   date: string
-  maxConnections: number
 }
 
 interface UnitedSearchQuery extends SearchQuery {}

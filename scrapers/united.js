@@ -14,7 +14,7 @@ exports.scraperMain = async(page, input) => {
   console.log("Waiting for JSON results...")
   const response = await page.waitForResponse("https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/awd", {timeout: 90000})
   const raw = await response.json()
-  const standardizedResults = standardizeResults(raw.data.Trips[0], input.maxConnections)
+  const standardizedResults = standardizeResults(raw.data.Trips[0])
 
   console.log("Done.")
 
@@ -23,9 +23,8 @@ exports.scraperMain = async(page, input) => {
 
 /**
  * @param {any} unitedTrip
- * @param {number} filterMaxConnections
  */
-const standardizeResults = (unitedTrip, filterMaxConnections) => {
+const standardizeResults = (unitedTrip) => {
   /** @type {SearchResult[]} */
   const results = []
   for (const flight of unitedTrip.Flights) {
@@ -46,7 +45,7 @@ const standardizeResults = (unitedTrip, filterMaxConnections) => {
     }
 
     // United's API has a way of returning flights with more connections than asked
-    if (flight.StopsandConnections > filterMaxConnections)
+    if (flight.StopsandConnections > 0)
       continue
 
     // Convert united format to standardized miles and cash formats

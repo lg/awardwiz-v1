@@ -65,6 +65,7 @@
     "line-comment-position": "off",       // sometimes you just need to describe whats going on
     "require-await": "off",
     "complexity": "off",
+    "max-params": "off",
 
     // ts-check
     "lines-around-comment": "off",        // jsdoc needed all over for ts-check
