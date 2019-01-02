@@ -151,6 +151,8 @@ const handleRequest = async params => {
     } catch (err) {
       console.error(err)
       response.error = JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err)))
+      if (platform === "other")
+        debugger
     }
   })
 
