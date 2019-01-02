@@ -107,9 +107,10 @@ const instrumentConsole = async toRun => {
   for (const consoleMethod of consoleMethods) {
     oldConsole[consoleMethod] = console[consoleMethod]
 
-    /** @param {ConsoleMethod} text */
-    console[consoleMethod] = text => {
-      oldConsole[consoleMethod](text)
+    /** @param {any} message */
+    console[consoleMethod] = message => {
+      oldConsole[consoleMethod](message)
+      const text = message.stack || message.toString()
       fullConsoleLog.push({type: consoleMethod, date: new Date().toISOString(), text})
     }
   }
@@ -149,7 +150,7 @@ const handleRequest = async params => {
       response.scraperResult = await scraper.scraperMain(page, params.params)
     } catch (err) {
       console.error(err)
-      response.error = err
+      response.error = JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err)))
     }
   })
 

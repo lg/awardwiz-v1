@@ -69,6 +69,9 @@ exports.scraperMain = async(page, input) => {
  * @param {import("./aeroplan").RawAeroplanResult} aeroplanTrip
  */
 const standardizeResults = aeroplanTrip => {
+  if (!aeroplanTrip.NormalResults)
+    return []
+
   const flights = aeroplanTrip.NormalResults.product[0].tripComponent[0].ODoption || []
 
   // Aeroplan has two modes (basically Saver and Standard from United), this checks for that second type

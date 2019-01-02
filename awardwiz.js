@@ -76,8 +76,7 @@ export default class AwardWiz {
     const searchParams = {
       origin: this.config.origin,
       destination: this.config.destination,
-      date: this.config.date,
-      maxConnections: 0
+      date: this.config.date
     }
 
     /** @type {Array<SearchResultRow>} */
@@ -114,7 +113,7 @@ export default class AwardWiz {
 
       // Individual status per scraper
       const consoleLog = result.error ? "" : result.consoleLog.map(item => `[${item.date}] ${item.type} - ${item.text}`.replace("T", " ").replace("Z", "")).join("\n")
-      const statusLine = result.error ? `Error: ${result.error.name}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
+      const statusLine = result.error ? `Error: ${result.error.name || result.error.message.substr(0, 25)}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
       statusDiv.innerHTML = `${scraperName} -
         ${statusLine} (${((new Date()).valueOf() - startTime) / 1000}s) -
         <a href="data:image/jpeg;base64,${result.screenshot}">show screenshot</a>

@@ -14,11 +14,17 @@ exports.scraperMain = async(page, input) => {
   console.log("Waiting for JSON results...")
   const response = await page.waitForResponse("https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/awd", {timeout: 90000})
   const raw = await response.json()
-  const standardizedResults = standardizeResults(raw.data.Trips[0])
+
+  const standardizedResults = []
+  if (raw.data.Trips !== null)
+    standardizedResults.push(...standardizeResults(raw.data.Trips[0]))
+  const warnings = []
+  if (raw.errors)
+    warnings.push(raw.errors[0])
 
   console.log("Done.")
 
-  return {searchResults: standardizedResults}
+  return {searchResults: standardizedResults, warnings}
 }
 
 /**
