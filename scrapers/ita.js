@@ -1,5 +1,3 @@
-/* eslint-disable no-await-in-loop */
-
 // ITA has multiple methods to mess with scraping such that search results will be arbitrarily
 // delayed and only give 10 direct flights. Things that trigger this protection:
 //   - Existance of navigator.webdriver
@@ -140,10 +138,14 @@ const getFlightFromRow = async(page, input, rowElement, detailsElement) => {
   const result = {
     departureDateTime: "",
     arrivalDateTime: "",
-    origin: "",
-    destination: "",
+    origin: (await xPathInnerText(page, ".//div[2]", rowElement, "origin/destination of flight")).split(" to ")[0],
+    destination: (await xPathInnerText(page, ".//div[2]", rowElement, "origin/destination of flight")).split(" to ")[1],
+    duration: await xPathInnerText(page, ".//table[2]/tbody[1]/tr[1]/td[2]/div[1]", detailsElement, "flight duration"),
+    aircraft: await xPathInnerText(page, ".//table[2]/tbody[1]/tr[3]/td[2]/div[1]", detailsElement, "aircraft type used for flight"),
+    airline: (await xPathInnerText(page, ".//div[1]", detailsElement, "airline name and flight number")).split(" flight ")[0],
+    flightNo: null,
     costs: {
-      economy: {miles: null, cash: null},
+      economy: {miles: null, cash: parseInt((await xPathInnerText(page, ".//div[1]/button[1]/span[2]", rowElement, "economy cash amount")).replace("$", ""), 10)},
       business: {miles: null, cash: null},
       first: {miles: null, cash: null}
     }
@@ -159,13 +161,7 @@ const getFlightFromRow = async(page, input, rowElement, detailsElement) => {
     airlineCode = "??"
   }
 
-  [result.origin, result.destination] = (await xPathInnerText(page, ".//div[2]", rowElement, "origin/destination of flight")).split(" to ")
-  result.costs.economy.cash = parseInt((await xPathInnerText(page, ".//div[1]/button[1]/span[2]", rowElement, "economy cash amount")).replace("$", ""), 10)
-  result.duration = await xPathInnerText(page, ".//table[2]/tbody[1]/tr[1]/td[2]/div[1]", detailsElement, "flight duration")
-  result.aircraft = await xPathInnerText(page, ".//table[2]/tbody[1]/tr[3]/td[2]/div[1]", detailsElement, "aircraft type used for flight")
-
-  const [airlineName, flightNumber] = (await xPathInnerText(page, ".//div[1]", detailsElement, "airline name and flight number")).split(" flight ")
-  result.airline = airlineName
+  const [, flightNumber] = (await xPathInnerText(page, ".//div[1]", detailsElement, "airline name and flight number")).split(" flight ")
   result.flightNo = `${airlineCode} ${flightNumber}`
 
   const departureTime24 = convert12HourTo24Hour(await xPathInnerText(page, ".//table[1]/tbody[1]/tr[1]/td[4]/div[1]", detailsElement, "departure time"))

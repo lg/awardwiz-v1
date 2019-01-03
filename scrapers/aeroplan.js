@@ -5,7 +5,7 @@
 exports.scraperMain = async(page, input) => {
   /** @param {string} selector */
   const waitAndClick = selector => {
-    return page.waitForSelector(selector).then(() => {
+    return page.waitForSelector(selector, {timeout: 90000}).then(() => {
       return page.click(selector)
     })
   }
@@ -15,14 +15,14 @@ exports.scraperMain = async(page, input) => {
 
   console.log("Selecting language...")
   await waitAndClick(".btn-primary")
-  await page.waitForSelector(".header-login-btn")
+  await page.waitForSelector(".header-login-btn", {timeout: 90000})
 
   console.log("Logging in...")
   await waitAndClick(".header-login-btn")
   await page.type(".header-login-form-inner-wrapper #aeroplanNumber", input.aeroplanUsername)
   await page.type(".header-login-form-inner-wrapper input[type=password]", input.aeroplanPassword)
   await page.click(".header-login-form-inner-wrapper .form-login-submit")
-  await page.waitForSelector(".header-logout-btn")
+  await page.waitForSelector(".header-logout-btn", {timeout: 90000})
 
   console.log("Going to search page and waiting for default airport...")
   await page.goto("https://www.aeroplan.com/en/use-your-miles/travel.html", {waitUntil: "networkidle0"})
@@ -50,16 +50,18 @@ exports.scraperMain = async(page, input) => {
 
   console.log("Starting search and waiting for results window...")
   await page.click("div[data-automation=one-way-submit] button")
-  const newWindowTarget = await page.browser().waitForTarget(target => target.url() === "https://www.aeroplan.com/adr/Results.do")
+  const newWindowTarget = await page.browser().waitForTarget(target => target.url() === "https://www.aeroplan.com/adr/Results.do", {timeout: 90000})
   const newPage = await newWindowTarget.page()
 
   console.log("Waiting for results...")
-  const response = await newPage.waitForResponse("https://www.aeroplan.com/adr/Results_Ajax.jsp?searchType=oneway&forceIkk=false")
+  const response = await newPage.waitForResponse("https://www.aeroplan.com/adr/Results_Ajax.jsp?searchType=oneway&forceIkk=false", {timeout: 90000})
   const raw = await response.json()
 
   console.log("Parsing results...")
   const standardizedResults = standardizeResults(raw)
 
+  // Allow the page a bit of time to render so the screenshot works
+  await page.waitFor(500)
   console.log("Done.")
 
   return {searchResults: standardizedResults}
@@ -88,19 +90,18 @@ const standardizeResults = aeroplanTrip => {
       // Clean up format of flight times and also remove seconds
       departureDateTime: flight.segment[0].departureDateTime.toString().replace("T", " ").substr(0, 16),
       arrivalDateTime: flight.segment[flight.segment.length - 1].arrivalDateTime.toString().replace("T", " ").substr(0, 16),
-
+      flightNo: `${flight.segment[0].flightNo.substr(0, 2)} ${flight.segment[0].flightNo.substr(2)}`,
+      aircraft: flight.segment[0].aircraft,
+      airline: aeroplanTrip.NormalResults.filters.airlines[flight.segment[0].airline],
       origin: flight.segment[0].origin,
       destination: flight.segment[flight.segment.length - 1].destination,
+      duration: null,
       costs: {
         economy: {miles: null, cash: null},
         business: {miles: null, cash: null},
         first: {miles: null, cash: null}
       }
     }
-
-    result.flightNo = `${flight.segment[0].flightNo.substr(0, 2)} ${flight.segment[0].flightNo.substr(2)}`
-    result.aircraft = flight.segment[0].aircraft
-    result.airline = aeroplanTrip.NormalResults.filters.airlines[flight.segment[0].airline]
 
     // Look if we already have this entry, and if so, switch to it
     let foundPrevResult = false

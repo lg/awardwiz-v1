@@ -66,6 +66,7 @@
     "require-await": "off",
     "complexity": "off",
     "max-params": "off",
+    "no-await-in-loop": "off",
 
     // ts-check
     "lines-around-comment": "off",        // jsdoc needed all over for ts-check

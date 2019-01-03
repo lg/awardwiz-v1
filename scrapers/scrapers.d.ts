@@ -19,16 +19,16 @@ interface SearchResult {
   }
 
   /** Airline name. Examples: American, Air Canada */
-  airline?: string
+  airline: string | null
 
   /** Flight number with airline code. Examples: AC 123, SQ 1 */
-  flightNo?: string
+  flightNo: string | null
 
   /** Duration of the flight. Example: 5h 32m */
-  duration?: string
+  duration: string | null
 
   /** The type of aircraft for the flight. Example: Airbus A320 */
-  aircraft?: string
+  aircraft: string | null
 }
 
 interface SearchResultMilesAndCash {

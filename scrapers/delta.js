@@ -18,7 +18,7 @@ exports.scraperMain = async(page, input) => {
   const fillFromAutocomplete = async(textBoxSelector, textToFind) => {
     await page.click(textBoxSelector)
     for (let backspace = 0; backspace < 3; backspace += 1)
-      await page.keyboard.press("Backspace")    // eslint-disable-line no-await-in-loop
+      await page.keyboard.press("Backspace")
     await page.keyboard.type(`${textToFind}`)
     await page.waitForXPath(`//p[contains(text(), '(${textToFind})')]`, {timeout: 90000})
     await page.keyboard.press("Enter")
@@ -31,7 +31,6 @@ exports.scraperMain = async(page, input) => {
   console.log("Opening up calendar for date and selecting date...")
   await page.click("#departureDate")
 
-  /* eslint-disable no-await-in-loop */
   for (let monthClick = 0; monthClick < 12; monthClick += 1) {
     const element = await page.$(`a[data-date*='${input.date.substr(5, 2)}/${input.date.substr(8, 2)}/${input.date.substr(0, 4)}']`)
     if (element) {
@@ -41,7 +40,6 @@ exports.scraperMain = async(page, input) => {
 
     await page.click("a[aria-label='Next']")
   }
-  /* eslint-enable no-await-in-loop */
 
   console.log("Starting first search...")
   await page.click(".btn-find-results")

@@ -124,14 +124,12 @@ export class CloudProvider {
     /** @param {number} ms */
     const delay = ms => new Promise(res => setTimeout(res, ms))
     for (let loopNo = 0; loopNo < maxAttempts; loopNo += 1) {
-      /* eslint-disable no-await-in-loop */
       if (await toRun())
         return
 
       // Do the delay every time but the last loop
       if (loopNo < maxAttempts - 1)
         await delay(attemptDelayMs)
-      /* eslint-enable no-await-in-loop */
     }
     throw new Error("Timeout waiting for result")
   }

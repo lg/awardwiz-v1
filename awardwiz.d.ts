@@ -18,6 +18,7 @@ interface AwardWizConfig {
   searchUnited: string
   searchAeroplan: string
   searchDelta: string
+  searchAlaska: string
 }
 
 interface CloudProviderConfig {
