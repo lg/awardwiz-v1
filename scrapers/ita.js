@@ -99,7 +99,7 @@ exports.scraperMain = async(page, input) => {
 
     let result = null
     try {
-      result = await getFlightFromRow(page, input, rowElement, detailsElement)
+      result = await getFlightFromRow(page, input, rowElement, detailsElement, results)
     } catch (err) {
       warnings.push(err.message)
     }
@@ -107,6 +107,11 @@ exports.scraperMain = async(page, input) => {
     if (result)
       results.push(result)
   }
+
+  // Clean up all the codeshare indicators
+  for (const result of results)
+    if (result.flightNo)
+      result.flightNo = result.flightNo.replace("*", "")
 
   // Kind of a hack, but sometimes when flights are really short, ITA doesn't return the airline
   // code since it can't fit in their little bar graphic. Here we try to guess the code based on
@@ -131,9 +136,10 @@ exports.scraperMain = async(page, input) => {
  * @param {SearchQuery} input
  * @param {import("puppeteer").ElementHandle<Element>} rowElement
  * @param {import("puppeteer").ElementHandle<Element>} detailsElement
+ * @param {SearchResult[]} results
  * @returns {Promise<SearchResult | null>}
  */
-const getFlightFromRow = async(page, input, rowElement, detailsElement) => {
+const getFlightFromRow = async(page, input, rowElement, detailsElement, results) => {
   /** @type {SearchResult} */
   const result = {
     departureDateTime: "",
@@ -154,9 +160,6 @@ const getFlightFromRow = async(page, input, rowElement, detailsElement) => {
   let airlineCode = null
   try {
     airlineCode = await xPathInnerText(page, ".//div[3]/div[1]/div[1]/div[1]/div[1]/div[1]", rowElement, "2-letter airline code")
-    // Skip codeshares since the proper flights should be on the list anyways
-    if (airlineCode.endsWith("*"))
-      return null
   } catch (err) {
     airlineCode = "??"
   }
@@ -184,6 +187,21 @@ const getFlightFromRow = async(page, input, rowElement, detailsElement) => {
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   result.arrivalDateTime = `${arrivalYear.toString()}-${(months.indexOf(arrivalMonthName) + 1).toString().padStart(2, "0")}-${arrivalDay.padStart(2, "0")} ${arrivalTime24}`
+
+  // Keep only the non-codeshares OR the firstcodeshare
+  const resultIsCodeshare = result.flightNo && result.flightNo.indexOf("*") > -1
+  let dropResult = false
+  results.forEach((checkResult, index) => {
+    if (checkResult.departureDateTime === result.departureDateTime && checkResult.arrivalDateTime === result.arrivalDateTime) {
+      const checkIsCodeshare = checkResult.flightNo && checkResult.flightNo.indexOf("*") > -1
+      // If the current result is NOT a codeshare and we're checking against a codeshare, replace the codeshare
+      if (!resultIsCodeshare && checkIsCodeshare)
+        results[index] = result
+      dropResult = true
+    }
+  })
+  if (dropResult)
+    return null
 
   return result
 }
