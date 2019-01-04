@@ -13,18 +13,26 @@ exports.scraperMain = async(page, input) => {
   await page.click("input[value='POINTS']")
 
   /** @param {string} textBoxSelector
-   * @param {string} textToFind */
-  const fillFromAutocomplete = async(textBoxSelector, textToFind) => {
+   * @param {string} textToFind
+   * @param {boolean} waitForAutocomplete */
+  const fillFromAutocomplete = async(textBoxSelector, textToFind, waitForAutocomplete) => {
     await page.type(textBoxSelector, textToFind)
-    await page.waitForSelector(`button[aria-label~=${textToFind}]`, {timeout: 90000})
+    if (waitForAutocomplete)
+      await page.waitForSelector(`button[aria-label~=${textToFind}]`, {timeout: 90000})
     await page.click(`button[aria-label~=${textToFind}]`)
   }
 
-  console.log("Setting origin...")
-  await fillFromAutocomplete("#originationAirportCode", input.origin)
+  try {
+    console.log("Setting origin...")
+    await fillFromAutocomplete("#originationAirportCode", input.origin, false)
 
-  console.log("Setting destination...")
-  await fillFromAutocomplete("#destinationAirportCode", input.destination)
+    console.log("Setting destination...")
+    await fillFromAutocomplete("#destinationAirportCode", input.destination, false)
+  } catch (err) {
+    // Airport wasn't found, return empty results
+    console.log("Airport wasn't found")
+    return {searchResults: []}
+  }
 
   console.log("Setting date...")
   await page.type("#departureDate", `${input.date.substr(5, 2)}/${input.date.substr(8, 2)}`)

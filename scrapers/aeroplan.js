@@ -4,8 +4,8 @@
  */
 exports.scraperMain = async(page, input) => {
   /** @param {string} selector */
-  const waitAndClick = selector => {
-    return page.waitForSelector(selector, {timeout: 90000}).then(() => {
+  const waitAndClick = (selector, timeoutMs = 90000) => {
+    return page.waitForSelector(selector, {timeout: timeoutMs}).then(() => {
       return page.click(selector)
     })
   }
@@ -31,15 +31,21 @@ exports.scraperMain = async(page, input) => {
   await waitAndClick("div[data-automation=round-trip-trip-type]")
   await waitAndClick("div[data-value=One-way]")
 
-  console.log("Setting origin...")
-  await waitAndClick("div[data-automation=one-way-from-location]")
-  await page.keyboard.type(input.origin)
-  await waitAndClick("div[data-automation=one-way-from-location] div[data-selectable]")
+  try {
+    console.log("Setting origin...")
+    await waitAndClick("div[data-automation=one-way-from-location]")
+    await page.keyboard.type(input.origin)
+    await waitAndClick("div[data-automation=one-way-from-location] div[data-selectable]", 5000)
 
-  console.log("Setting destination...")
-  await waitAndClick("div[data-automation=one-way-to-location]")
-  await page.keyboard.type(input.destination)
-  await waitAndClick("div[data-automation=one-way-to-location] div[data-selectable]")
+    console.log("Setting destination...")
+    await waitAndClick("div[data-automation=one-way-to-location]")
+    await page.keyboard.type(input.destination)
+    await waitAndClick("div[data-automation=one-way-to-location] div[data-selectable]", 5000)
+  } catch (err) {
+    // Airport wasn't found, return empty results
+    console.log("Airport wasn't found")
+    return {searchResults: []}
+  }
 
   console.log("Turning off 'Compare to AirCanada.com' option...")
   await waitAndClick("#OneWayAirCanadaCompare1")

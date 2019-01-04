@@ -115,12 +115,10 @@ export default class AwardWiz {
       }
 
       // Individual status per scraper
-      const consoleLog = result.error ? "" : result.consoleLog.map(item => `[${item.date}] ${item.type} - ${item.text}`.replace("T", " ").replace("Z", "")).join("\n")
       const statusLine = result.error ? `Error: ${result.error.name || result.error.message.substr(0, 25)}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
       statusDiv.innerHTML = `${scraperName} -
         ${statusLine} (${((new Date()).valueOf() - startTime) / 1000}s) -
         <a href="data:image/jpeg;base64,${result.screenshot}">show screenshot</a>
-        <a href="data:text/plain;base64,${btoa(consoleLog)}">show log</a>
         <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}">show result</a> (right click to open)`
 
       // Store and merge the results into the table

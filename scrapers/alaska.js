@@ -12,19 +12,24 @@ exports.scraperMain = async(page, input) => {
   console.log("Setting miles...")
   await page.click("#awardReservation")
 
-  console.log("Setting origin...")
   /** @param {string} textBoxSelector
    * @param {string} textToFind */
   const fillFromAutocomplete = async(textBoxSelector, textToFind) => {
-    await page.click(textBoxSelector)
-    await page.keyboard.type(`${textToFind}`)
-    await page.waitForSelector(`li[citycode='${textToFind}']`, {timeout: 90000})
+    await page.type(textBoxSelector, textToFind)
+    await page.waitForSelector(`li[citycode='${textToFind}']`, {timeout: 5000})
     await page.click(`li[citycode='${textToFind}']`)
   }
-  await fillFromAutocomplete("#fromCity", input.origin)
 
-  console.log("Setting destination...")
-  await fillFromAutocomplete("#toCity", input.destination)
+  try {
+    console.log("Setting origin...")
+    await fillFromAutocomplete("#fromCity", input.origin)
+
+    console.log("Setting destination...")
+    await fillFromAutocomplete("#toCity", input.destination)
+  } catch (err) {
+    console.log("Airport wasn't found")
+    return {searchResults: []}
+  }
 
   console.log("Setting date and starting search...")
   await page.click("#departureDate")

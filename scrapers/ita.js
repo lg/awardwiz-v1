@@ -16,20 +16,25 @@ exports.scraperMain = async(page, input) => {
   const tabs = await page.$$(".gwt-TabBarItem .gwt-HTML")
   await tabs[1].click()
 
-  console.log("Setting origin...")
-  const fields = await page.$$(".gwt-SuggestBox")
-  await fields[2].focus()
-  await page.keyboard.type(input.origin)
-  const originXPath = `//span[contains(text(), '(${input.origin})')]`
-  await page.waitForXPath(originXPath, {timeout: 0})
-  await page.evaluate(`document.evaluate("${originXPath}", document).iterateNext().click()`)
+  try {
+    console.log("Setting origin...")
+    const fields = await page.$$(".gwt-SuggestBox")
+    await fields[2].focus()
+    await page.keyboard.type(input.origin)
+    const originXPath = `//span[contains(text(), '(${input.origin})')]`
+    await page.waitForXPath(originXPath, {timeout: 5000})
+    await page.evaluate(`document.evaluate("${originXPath}", document).iterateNext().click()`)
 
-  console.log("Setting destination...")
-  await fields[3].focus()
-  await page.keyboard.type(input.destination)
-  const destinationXPath = `//span[contains(text(), '(${input.destination})')]`
-  await page.waitForXPath(destinationXPath, {timeout: 0})
-  await page.evaluate(`document.evaluate("${destinationXPath}", document).iterateNext().click()`)
+    console.log("Setting destination...")
+    await fields[3].focus()
+    await page.keyboard.type(input.destination)
+    const destinationXPath = `//span[contains(text(), '(${input.destination})')]`
+    await page.waitForXPath(destinationXPath, {timeout: 5000})
+    await page.evaluate(`document.evaluate("${destinationXPath}", document).iterateNext().click()`)
+  } catch (err) {
+    console.log("Airport wasn't found")
+    return {searchResults: []}
+  }
 
   console.log("Setting no connections...")
   const [stopsElement] = (await page.$x("//label[contains(text(), 'Stops')]/..//select"))

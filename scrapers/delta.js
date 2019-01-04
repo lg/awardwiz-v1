@@ -12,7 +12,6 @@ exports.scraperMain = async(page, input) => {
   console.log("Setting miles...")
   await page.click("input[aria-label='MILES']")
 
-  console.log("Setting origin...")
   /** @param {string} textBoxSelector
    * @param {string} textToFind */
   const fillFromAutocomplete = async(textBoxSelector, textToFind) => {
@@ -20,13 +19,21 @@ exports.scraperMain = async(page, input) => {
     for (let backspace = 0; backspace < 3; backspace += 1)
       await page.keyboard.press("Backspace")
     await page.keyboard.type(`${textToFind}`)
-    await page.waitForXPath(`//p[contains(text(), '(${textToFind})')]`, {timeout: 90000})
+    await page.waitForXPath(`//p[contains(text(), '(${textToFind})')]`, {timeout: 5000})
     await page.keyboard.press("Enter")
   }
-  await fillFromAutocomplete("#input_origin_1", input.origin)
 
-  console.log("Setting destination...")
-  await fillFromAutocomplete("#input_destination_1", input.destination)
+  try {
+    console.log("Setting origin...")
+    await fillFromAutocomplete("#input_origin_1", input.origin)
+
+    console.log("Setting destination...")
+    await fillFromAutocomplete("#input_destination_1", input.destination)
+  } catch (err) {
+    // Airport wasn't found, return empty results
+    console.log("Airport wasn't found")
+    return {searchResults: []}
+  }
 
   console.log("Opening up calendar for date and selecting date...")
   await page.click("#departureDate")
@@ -45,6 +52,13 @@ exports.scraperMain = async(page, input) => {
   await page.click(".btn-find-results")
 
   console.log("Waiting for Flexible Dates table...")
+  const resultFoundPromise = page.waitForSelector(".exactMatchCell a", {timeout: 90000}).then(() => 0)
+  const errorMessagePromise = page.waitForXPath("//div[contains(text(), 'there are no scheduled Delta/Partner')]", {timeout: 90000}).then(() => 1)
+  if (await Promise.race([resultFoundPromise, errorMessagePromise]) === 1) {
+    console.log("No flights found")
+    return {searchResults: []}
+  }
+
   await page.waitForSelector(".exactMatchCell a", {timeout: 90000})
   await page.click(".exactMatchCell a")
 
