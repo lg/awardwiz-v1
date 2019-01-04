@@ -6,7 +6,7 @@ export default class AwardWiz {
     this.config = AwardWiz.loadConfigAndUpdateDocument()
 
     this.cloud = new AWSProvider({
-      files: ["ita.js", "united.js", "aeroplan.js", "delta.js", "alaska.js", "index.js", "package.json"],
+      files: ["ita.js", "united.js", "aeroplan.js", "delta.js", "alaska.js", "index.js", "southwest.js", "package.json"],
       filesDir: "scrapers",
 
       accessKey: this.config.awsAccessKey,
@@ -41,7 +41,8 @@ export default class AwardWiz {
       searchUnited: localStorage.getItem("searchUnited") || "true",
       searchAeroplan: localStorage.getItem("searchAeroplan") || "true",
       searchDelta: localStorage.getItem("searchDelta") || "true",
-      searchAlaska: localStorage.getItem("searchAlaska") || "true"
+      searchAlaska: localStorage.getItem("searchAlaska") || "true",
+      searchSouthwest: localStorage.getItem("searchSouthwest") || "true"
     }
 
     for (const configToSave of Object.getOwnPropertyNames(config)) {
@@ -195,6 +196,8 @@ export default class AwardWiz {
       queries.push(runScraper({scraper: "delta", params: searchParams}))
     if (this.config.searchAlaska === "true")
       queries.push(runScraper({scraper: "alaska", params: searchParams}))
+    if (this.config.searchSouthwest === "true")
+      queries.push(runScraper({scraper: "southwest", params: searchParams}))
     await Promise.all(queries)
 
     console.log("Completed search.")

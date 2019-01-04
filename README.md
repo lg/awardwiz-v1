@@ -58,13 +58,11 @@ Some tips about scraping results from sites:
 ## Future
 
 - add GCP, Azure, Apify and other cloud function providers
-- add Delta, Aeroplan and many more award providers
 - auto pull in points from AwardWallet
 - auto generate routes here instead of using the airlines (since we're smarter)
 - auto select airlines based on AwardHacker data
 - suggest which airlines to get more miles onto (i.e. "you could have saved X miles if you had these kinds of miles")
 - auto calculate cost savings
-- parallel requests to scan all possibilities
 
 ## References
 

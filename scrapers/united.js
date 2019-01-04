@@ -43,6 +43,7 @@ const standardizeResults = (unitedTrip) => {
       flightNo: `${flight.MarketingCarrier} ${flight.FlightNumber}`,
       airline: flight.MarketingCarrierDescription,
       aircraft: flight.EquipmentDisclosures.EquipmentDescription,
+      duration: null,
       costs: {
         economy: {miles: null, cash: null},
         business: {miles: null, cash: null},
