@@ -3,25 +3,30 @@ import AWSProvider from "./cloud-providers/aws-provider.js"
 
 export default class AwardWiz {
   constructor() {
-    this.config = AwardWiz.loadConfigAndUpdateDocument()
+    // @ts-ignore because the type checker isn't very good at async constructors
+    return (async() => {
+      this.config = await AwardWiz.loadConfigAndUpdateDocument()
 
-    this.cloud = new AWSProvider({
-      files: ["ita.js", "united.js", "aeroplan.js", "delta.js", "alaska.js", "index.js", "southwest.js", "package.json"],
-      filesDir: "scrapers",
+      this.cloud = new AWSProvider({
+        files: ["index.js", "package.json", ...Object.keys(this.config.scrapers).map(scraperName => `${scraperName}.js`)],
+        filesDir: "scrapers",
 
-      accessKey: this.config.awsAccessKey,
-      secretAccessKey: this.config.awsSecretAccessKey,
-      regionZone: this.config.awsRegionZone,
-      lambdaRoleArn: this.config.awsLambdaRoleArn,
+        accessKey: this.config.awsAccessKey,
+        secretAccessKey: this.config.awsSecretAccessKey,
+        regionZone: this.config.awsRegionZone,
+        lambdaRoleArn: this.config.awsLambdaRoleArn,
 
-      functionName: this.config.functionName
-    })
-    this.cloud.initOnPage()
+        functionName: this.config.functionName
+      })
+      this.cloud.initOnPage()
 
-    this.gridView = new AwardWizGrid(/** @type {HTMLDivElement} */ (document.querySelector("#resultsGrid")), AwardWiz.onRowClicked)
+      this.gridView = new AwardWizGrid(/** @type {HTMLDivElement} */ (document.querySelector("#resultsGrid")), AwardWiz.onRowClicked)
+
+      return this
+    })()
   }
 
-  static loadConfigAndUpdateDocument() {
+  static async loadConfigAndUpdateDocument() {
     /** @type {AwardWizConfig} */
     const config = {
       awsAccessKey: localStorage.getItem("awsAccessKey") || "",
@@ -31,35 +36,51 @@ export default class AwardWiz {
 
       functionName: localStorage.getItem("functionName") || "awardwiz",
       proxyUrl: localStorage.getItem("proxyUrl") || "",
-      aeroplanUsername: localStorage.getItem("aeroplanUsername") || "",
-      aeroplanPassword: localStorage.getItem("aeroplanPassword") || "",
       origin: localStorage.getItem("origin") || "",
       destination: localStorage.getItem("destination") || "",
       date: localStorage.getItem("date") || "",
 
-      searchITA: localStorage.getItem("searchITA") || "true",
-      searchUnited: localStorage.getItem("searchUnited") || "true",
-      searchAeroplan: localStorage.getItem("searchAeroplan") || "true",
-      searchDelta: localStorage.getItem("searchDelta") || "true",
-      searchAlaska: localStorage.getItem("searchAlaska") || "true",
-      searchSouthwest: localStorage.getItem("searchSouthwest") || "true"
+      // The scrapers can change a lot, so we maintain the list in a json
+      scrapers: await fetch("scrapers.json").then(result => result.json())
     }
+
+    const extraParamsDiv = document.querySelector("#scraperExtraParams")
+    if (!extraParamsDiv)
+      throw new Error("Missing extra params div")
+
+    // Scrapers can have custom parameters
+    Object.keys(config.scrapers).forEach((/** @type {string} */ scraperName) => {
+      if (config.scrapers[scraperName].extraParams) {
+        Object.keys(config.scrapers[scraperName].extraParams).forEach((/** @type {string} */ paramName) => {
+          const extraParamKey = `${scraperName}${paramName}`
+          config.scrapers[scraperName].extraParams[paramName].value = localStorage.getItem(extraParamKey) || ""
+
+          const extraParamLabel = document.createElement("label")
+          extraParamLabel.htmlFor = extraParamKey
+          extraParamLabel.innerText = `${scraperName} ${paramName}: `
+          const extraParamInput = document.createElement("input")
+          extraParamInput.type = "text"
+          extraParamInput.id = extraParamKey
+          extraParamInput.value = config.scrapers[scraperName].extraParams[paramName].value
+          extraParamInput.addEventListener("change", () => {
+            config.scrapers[scraperName].extraParams[paramName].value = extraParamInput.value
+            localStorage.setItem(extraParamKey, extraParamInput.value)
+          })
+          const extraParamBR = document.createElement("br")
+
+          extraParamsDiv.append(extraParamLabel, extraParamInput, extraParamBR)
+        })
+      }
+    })
 
     for (const configToSave of Object.getOwnPropertyNames(config)) {
       const element = /** @type {HTMLInputElement?} */ (document.getElementById(configToSave))
       if (!element)
         continue
 
-      if (configToSave.startsWith("search"))
-        element.checked = config[configToSave] === "true"
-      else
-        element.value = config[configToSave]
-
+      element.value = config[configToSave]
       element.addEventListener("change", () => {
-        if (configToSave.startsWith("search"))
-          config[element.id] = element.checked ? "true" : "false"
-        else
-          config[element.id] = element.value
+        config[element.id] = element.value
         localStorage.setItem(element.id, config[element.id])
       })
     }
@@ -184,18 +205,20 @@ export default class AwardWiz {
 
     console.log("Starting search...")
     const queries = []
-    if (this.config.searchITA === "true")
-      queries.push(runScraper({scraper: "ita", proxy: this.config.proxyUrl, params: searchParams}))
-    if (this.config.searchUnited === "true")
-      queries.push(runScraper({scraper: "united", proxy: this.config.proxyUrl, params: searchParams}))
-    if (this.config.searchAeroplan === "true")
-      queries.push(runScraper({scraper: "aeroplan", params: Object.assign(searchParams, {aeroplanUsername: this.config.aeroplanUsername, aeroplanPassword: this.config.aeroplanPassword})}))
-    if (this.config.searchDelta === "true")
-      queries.push(runScraper({scraper: "delta", params: searchParams}))
-    if (this.config.searchAlaska === "true")
-      queries.push(runScraper({scraper: "alaska", params: searchParams}))
-    if (this.config.searchSouthwest === "true")
-      queries.push(runScraper({scraper: "southwest", params: searchParams}))
+    for (const scraperName of Object.keys(this.config.scrapers)) {
+      const extraParams = {}
+      if (this.config.scrapers[scraperName].extraParams) {
+        Object.keys(this.config.scrapers[scraperName].extraParams).forEach((/** @type {string} */ paramName) => {
+          extraParams[`${paramName}`] = this.config.scrapers[scraperName].extraParams[paramName].value
+        })
+      }
+
+      queries.push(runScraper({
+        scraper: scraperName,
+        proxy: this.config.scrapers[scraperName].useProxy ? this.config.proxyUrl : undefined,    // eslint-disable-line no-undefined
+        params: {...searchParams, ...extraParams}
+      }))
+    }
     await Promise.all(queries)
 
     console.log("Completed search.")

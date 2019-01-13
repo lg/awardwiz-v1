@@ -1,6 +1,6 @@
 /**
  * @param {import("puppeteer").Page} page
- * @param {UnitedSearchQuery} input
+ * @param {SearchQuery} input
  */
 exports.scraperMain = async(page, input) => {
   console.log("Getting United cookie...")

@@ -1,6 +1,4 @@
 interface AwardWizConfig {
-  [key: string]: string
-
   awsAccessKey: string
   awsSecretAccessKey: string
   awsRegionZone: string
@@ -8,18 +6,21 @@ interface AwardWizConfig {
 
   functionName: string
   proxyUrl: string
-  aeroplanUsername: string
-  aeroplanPassword: string
   origin: string
   destination: string
   date: string
 
-  searchITA: string
-  searchUnited: string
-  searchAeroplan: string
-  searchDelta: string
-  searchAlaska: string
-  searchSouthwest: string
+  scrapers: {
+    [name: string]: {
+      searchedAirlines: string[]
+      useProxy?: boolean
+      extraParams?: {
+        [name: string]: {
+          value?: string
+        }
+      }
+    }
+  }[]
 }
 
 interface CloudProviderConfig {

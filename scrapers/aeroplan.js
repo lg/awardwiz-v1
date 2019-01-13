@@ -1,6 +1,6 @@
 /**
  * @param {import("puppeteer").Page} page
- * @param {AeroplanSearchQuery} input
+ * @param {SearchQuery} input
  */
 exports.scraperMain = async(page, input) => {
   /** @param {string} selector */
@@ -19,8 +19,8 @@ exports.scraperMain = async(page, input) => {
 
   console.log("Logging in...")
   await waitAndClick(".header-login-btn")
-  await page.type(".header-login-form-inner-wrapper #aeroplanNumber", input.aeroplanUsername)
-  await page.type(".header-login-form-inner-wrapper input[type=password]", input.aeroplanPassword)
+  await page.type(".header-login-form-inner-wrapper #aeroplanNumber", input.username)
+  await page.type(".header-login-form-inner-wrapper input[type=password]", input.password)
   await page.click(".header-login-form-inner-wrapper .form-login-submit")
   await page.waitForSelector(".header-logout-btn", {timeout: 90000})
 

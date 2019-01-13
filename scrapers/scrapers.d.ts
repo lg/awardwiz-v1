@@ -58,11 +58,13 @@ interface ScraperHashCheckParams {
 interface ScraperParams {
   scraper: string
   proxy?: string
-  params: UnitedSearchQuery | AeroplanSearchQuery
+  params: SearchQuery
   headless?: boolean
 }
 
 interface SearchQuery {
+  [extraParam: string]: string
+
   /** Origin airport code. */
   origin: string
 
@@ -71,12 +73,6 @@ interface SearchQuery {
 
   /** Date when the flight should depart. Format: YYYY-MM-DD */
   date: string
-}
-
-interface UnitedSearchQuery extends SearchQuery {}
-interface AeroplanSearchQuery extends SearchQuery {
-  aeroplanUsername: string
-  aeroplanPassword: string
 }
 
 interface ScraperResult {

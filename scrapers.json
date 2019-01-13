@@ -1,0 +1,23 @@
+{
+  "aeroplan": {
+    "searchedAirlines": ["UA", "AC"],
+    "extraParams": {"username": {}, "password": {}}
+  },
+  "alaska": {
+    "searchedAirlines": ["AL", "AA"]
+  },
+  "delta": {
+    "searchedAirlines": ["DL"]
+  },
+  "ita": {
+    "searchedAirlines": [],
+    "useProxy": true
+  },
+  "southwest": {
+    "searchedAirlines": ["WN"]
+  },
+  "united": {
+    "searchedAirlines": ["UA", "AC", "LH"],
+    "useProxy": true
+  }
+}

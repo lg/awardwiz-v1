@@ -1,18 +1,18 @@
 /* eslint-disable no-process-env */
 
 const index = require("./index")
-const process = require("process")
+//const process = require("process")
 
 const main = async() => {
   console.log("Starting")
   const result = await index.debugEntry({
-    scraper: "southwest",
+    scraper: "alaska",
     params: {
-      origin: "SJC",
-      destination: "LAX",
-      date: "2019-03-12",
-      aeroplanUsername: process.env.AEROPLAN_USERNAME,
-      aeroplanPassword: process.env.AEROPLAN_PASSWORD
+      origin: "JFK",
+      destination: "YYZ",
+      date: "2019-01-23"
+      // username: process.env.AEROPLAN_USERNAME || "",
+      // password: process.env.AEROPLAN_PASSWORD || ""
     }
   })
   console.log("Done")
