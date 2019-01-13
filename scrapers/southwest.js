@@ -66,16 +66,16 @@ exports.scraperMain = async(page, input) => {
       }
     }
 
-    if (result.fareProducts.ADULT.WGA.availabilityStatus === "AVAILABLE") {
-      flight.costs.economy.miles = parseInt(result.fareProducts.ADULT.WGA.fare.totalFare.value, 10)
-      flight.costs.economy.cash = parseInt(result.fareProducts.ADULT.WGA.fare.totalTaxesAndFees.value, 10)
+    for (const className of ["WGA", "ANY", "BUS"]) {
+      if (result.fareProducts.ADULT[className] && result.fareProducts.ADULT[className].availabilityStatus === "AVAILABLE") {
+        const newMiles = parseInt(result.fareProducts.ADULT[className].fare.totalFare.value, 10)
 
-    } else if (result.fareProducts.ADULT.ANY.availabilityStatus === "AVAILABLE") {
-      flight.costs.economy.miles = parseInt(result.fareProducts.ADULT.ANY.fare.totalFare.value, 10)
-      flight.costs.economy.cash = parseInt(result.fareProducts.ADULT.ANY.fare.totalTaxesAndFees.value, 10)
+        if (flight.costs.economy.miles === null || newMiles < flight.costs.economy.miles) {
+          flight.costs.economy.miles = newMiles
+          flight.costs.economy.cash = parseInt(result.fareProducts.ADULT[className].fare.totalTaxesAndFees.value, 10)
+        }
+      }
     }
-
-    // We don't process any "business" fares for Southwest since their Business is really just early boarding
 
     flights.push(flight)
   }
