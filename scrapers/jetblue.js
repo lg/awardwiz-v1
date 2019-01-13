@@ -8,23 +8,31 @@ exports.scraperMain = async(page, input) => {
   console.log("Going to search page with pre-filled fields...")
   await page.goto(`https://book.jetblue.com/shop/search/#/book/from/${input.origin}/to/${input.destination}/depart/${input.date.substr(8, 2)}-${input.date.substr(5, 2)}-${input.date.substr(0, 4)}/return/false/pax/ADT-1/redemption/true/promo/false`)
 
-  console.log("Starting search...")
+  console.log("Starting search and waiting for results...")
+  await page.waitForSelector("input[value='Find it']", {timeout: 90000})
   await page.click("input[value='Find it']")
 
-  console.log("Waiting for results...")
+  let result = 0
+  try {     // eslint-disable-line no-useless-catch
+    result = await Promise.race([
+      page.waitForXPath("//h3[text()='Departing flights']", {timeout: 90000}).then(() => 0),
+      page.waitForXPath("//p[contains(text(), 'No flights have been found')]", {timeout: 90000}).then(() => 1),
+      page.waitForXPath("//h1[text()='Select Your Flight']", {timeout: 90000}).then(() => 2),
+      page.waitForXPath("//div[contains(text(),'Please enter valid ')]", {timeout: 90000}).then(() => 3)
+    ])
+  } catch (err) {   // necessary to deal with a puppeteer bug where closing the browser causes a race condition
+    throw err
+  }
 
-  const resultsFoundPromise = page.waitForXPath("//h3[text()='Departing flights']", {timeout: 90000}).then(() => 0)
-  const noFlightsPromise = page.waitForXPath("//p[contains(text(), 'No flights have been found')]", {timeout: 90000}).then(() => 1)
-  const alternateUIPromise = page.waitForXPath("//h1[text()='Select Your Flight']", {timeout: 90000}).then(() => 2)
-  const result = await Promise.race([resultsFoundPromise, noFlightsPromise, alternateUIPromise])
   if (result === 1) {
     console.log("No flights found")
     return {searchResults: []}
   } else if (result === 2) {
     throw new Error("Alternate UI")
+  } else if (result === 3) {
+    console.log("One or more airports not supported")
+    return {searchResults: []}
   }
-
-  await page.waitForSelector("#nonstopFlights", {timeout: 90000})
 
   /** @param {import("puppeteer").ElementHandle<Element>} parentElement
    * @param {string} selector
