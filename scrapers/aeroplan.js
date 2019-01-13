@@ -35,12 +35,12 @@ exports.scraperMain = async(page, input) => {
     console.log("Setting origin...")
     await waitAndClick("div[data-automation=one-way-from-location]")
     await page.keyboard.type(input.origin)
-    await waitAndClick("div[data-automation=one-way-from-location] div[data-selectable]", 5000)
+    await waitAndClick(`div[data-value=${input.origin}]`, 5000)
 
     console.log("Setting destination...")
     await waitAndClick("div[data-automation=one-way-to-location]")
     await page.keyboard.type(input.destination)
-    await waitAndClick("div[data-automation=one-way-to-location] div[data-selectable]", 5000)
+    await waitAndClick(`div[data-value=${input.destination}]`, 5000)
   } catch (err) {
     // Airport wasn't found, return empty results
     console.log("Airport wasn't found")
