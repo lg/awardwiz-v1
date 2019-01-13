@@ -44,7 +44,12 @@ Create a new file in the `scrapers/` directory. Here's the initial template to g
  * @param {SearchQuery} input
  */
 exports.scraperMain = async(page, input) => {
-  return {searchResults: []}
+  console.log("Going to search page...")
+  await page.goto("https://www.airline.com")
+
+  /** @type {SearchResult[]} */
+  const flights = []
+  return {searchResults: flights}
 }
 ```
 

@@ -13,6 +13,9 @@
     "searchedAirlines": [],
     "useProxy": true
   },
+  "jetblue": {
+    "searchedAirlines": ["B6"]
+  },
   "southwest": {
     "searchedAirlines": ["WN"]
   },
