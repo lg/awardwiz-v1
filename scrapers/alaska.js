@@ -35,8 +35,10 @@ exports.scraperMain = async(page, input) => {
   await page.click("#departureDate")
   await page.waitForSelector("#as-datepicker[aria-hidden='false']", {timeout: 90000})
   await page.click("#departureDate")
-  for (let backspace = 0; backspace < 8; backspace += 1)
+  for (let backspace = 0; backspace < 8; backspace += 1) {
     await page.keyboard.press("Backspace")
+    await page.keyboard.press("Delete")
+  }
   await page.keyboard.type(`${input.date.substr(5, 2)}/${input.date.substr(8, 2)}/${input.date.substr(2, 2)}`)
   await page.keyboard.press("Enter")
 

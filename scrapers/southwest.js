@@ -75,10 +75,7 @@ exports.scraperMain = async(page, input) => {
       flight.costs.economy.cash = parseInt(result.fareProducts.ADULT.ANY.fare.totalTaxesAndFees.value, 10)
     }
 
-    if (result.fareProducts.ADULT.BUS.availabilityStatus === "AVAILABLE") {
-      flight.costs.business.miles = parseInt(result.fareProducts.ADULT.BUS.fare.totalFare.value, 10)
-      flight.costs.business.cash = parseInt(result.fareProducts.ADULT.BUS.fare.totalTaxesAndFees.value, 10)
-    }
+    // We don't process any "business" fares for Southwest since their Business is really just early boarding
 
     flights.push(flight)
   }
