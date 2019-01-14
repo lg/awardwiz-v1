@@ -8,17 +8,24 @@
 
 Open Console (⌥-⌘-C) to view status<br/><br/>
 
-<label for="awsAccessKey">AWS Access Key: </label><input type="text" id="awsAccessKey" value=""/><br/>
-<label for="awsSecretAccessKey">AWS Secret Access Key: </label><input type="text" id="awsSecretAccessKey" value=""/><br/>
-<label for="awsRegionZone">AWS Region Zone: </label><input type="text" id="awsRegionZone" value=""/><br/>
-<label for="awsLambdaRoleArn">AWS Lambda Role ARN: </label><input type="text" id="awsLambdaRoleArn" value=""/><br/>
-<br/>
+<details>
+  <summary>AWS and Scraper Configuration</summary>
+  <button onclick="window.awardwiz.exportSettings()">export settings</button>
+  <button onclick="window.awardwiz.importSettings()">import settings</button><br/><br/>
 
-<label for="functionName">Function Name: </label><input type="text" id="functionName" value=""/><br/>
-<br/>
-<label for="proxyUrl">Proxy URL: </label><input type="text" id="proxyUrl" value=""/><br/>
-<br/>
-<div id="scraperExtraParams"></div>
+  <label for="awsAccessKey">AWS Access Key: </label><input type="text" id="awsAccessKey" value=""/><br/>
+  <label for="awsSecretAccessKey">AWS Secret Access Key: </label><input type="text" id="awsSecretAccessKey" value=""/><br/>
+  <label for="awsRegionZone">AWS Region Zone: </label><input type="text" id="awsRegionZone" value=""/><br/>
+  <label for="awsLambdaRoleArn">AWS Lambda Role ARN: </label><input type="text" id="awsLambdaRoleArn" value=""/><br/>
+  <br/>
+
+  <label for="functionName">Function Name: </label><input type="text" id="functionName" value=""/><br/>
+  <br/>
+  <label for="proxyUrl">Proxy URL: </label><input type="text" id="proxyUrl" value=""/><br/>
+  <br/>
+  <div id="scraperExtraParams"></div>
+</details>
+
 <br/>
 <label for="origin">origin: </label><input type="text" id="origin" value=""/> (ex. SFO)<br/>
 <label for="destination">destination: </label><input type="text" id="destination" value=""/> (ex. YOW)<br/>

@@ -26,6 +26,35 @@ export default class AwardWiz {
     })()
   }
 
+  exportSettings() {
+    const settingsString = btoa(JSON.stringify(this.config))
+    console.log(`Your settings string is: ${settingsString}`)
+    console.log("Please remember not to spread this to friends, personal credentials are contained in these strings!")
+  }
+
+  importSettings() {
+    const settingsString = window.prompt("Paste the settings string from someone here. Please remember not to spread this to friends, personal credentials are contained in these strings!") || ""  // eslint-disable-line no-alert
+    const settings = JSON.parse(atob(settingsString))
+
+    // Settings for scrapers are stored in the scrapers object, but HTML elements are globally namespaced
+    for (const scraperName of Object.keys(settings.scrapers))
+      if (settings.scrapers[scraperName].extraParams)
+        for (const extraParamName of Object.keys(settings.scrapers[scraperName].extraParams))
+          settings[`${scraperName}${extraParamName}`] = settings.scrapers[scraperName].extraParams[extraParamName].value
+
+    for (const key of Object.keys(settings)) {
+      const el = /** @type {HTMLInputElement} */ (document.getElementById(key))
+      if (el) {
+        el.value = settings[key]
+        const evt = document.createEvent("HTMLEvents")
+        evt.initEvent("change", false, true)
+        el.dispatchEvent(evt)
+      }
+    }
+
+    window.location.reload()
+  }
+
   static async loadConfigAndUpdateDocument() {
     /** @type {AwardWizConfig} */
     const config = {
