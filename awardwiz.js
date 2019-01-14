@@ -22,6 +22,11 @@ export default class AwardWiz {
 
       this.gridView = new AwardWizGrid(/** @type {HTMLDivElement} */ (document.querySelector("#resultsGrid")), AwardWiz.onRowClicked)
 
+      /** @type {Array<SearchResultRow>} */
+      this.resultRows = []    // the data more aggregated for the grid view
+      /** @type {Object<string, Array<SearchResult>>} */
+      this.scraperResults = {}    // the raw result data from the scrapers
+
       return this
     })()
   }
@@ -122,131 +127,151 @@ export default class AwardWiz {
     console.log("Prepped successfully.")
   }
 
+  /** Runs a scraper and outputs status/debug text to console and text fields.
+   * @param {string} scraperName
+   * @param {SearchQuery} searchQuery
+   * @param {HTMLElement} statusElement */
+  async searchUsingScraper(scraperName, searchQuery, statusElement) {
+    /** @type {ScraperParams} */
+    const scraperParams = {
+      scraper: scraperName,
+      params: {...searchQuery}
+    }
+
+    // Some scrapers require a proxy be used, set it if necessary
+    if (this.config.scrapers[scraperName].useProxy)
+      scraperParams.proxy = this.config.proxyUrl
+
+    // Some scrapers have extra settings (like usernames/passwords that need to be used)
+    if (this.config.scrapers[scraperName].extraParams)
+      for (const paramName of Object.keys(this.config.scrapers[scraperName].extraParams))
+        scraperParams.params[paramName] = this.config.scrapers[scraperName].extraParams[paramName].value
+
+    // Keep a per-scraper status visible
+    const statusDiv = document.createElement("div")
+    statusDiv.innerHTML = `Searching ${scraperName}...`
+    statusElement.appendChild(statusDiv)
+
+    // Wait for scraper results
+    console.log(`Running scraper '${scraperName}'...`)
+
+    const startTime = (new Date()).valueOf()
+    const result = await this.cloud.run(scraperParams)
+    if (result.scraperResult) {
+      console.log(`Scraper '${scraperName}' returned ${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}.`)
+    } else {
+      console.log(`Scraper '${scraperName}' errored.`)
+      result.scraperResult = {searchResults: []}
+    }
+
+    // Individual status per scraper
+    const statusLine = result.error ? `Error: ${result.error.name || result.error.message.substr(0, 25)}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
+    statusDiv.innerHTML = `${scraperName} -
+      ${statusLine} (${((new Date()).valueOf() - startTime) / 1000}s) -
+      <a href="data:image/jpeg;base64,${result.screenshot}" target="_blank">show screenshot</a>
+      <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}" target="_blank">show result</a> (right click to open)`
+
+    return result
+  }
+
+  /** @param {string} scraperName */
+  addScraperResultsToGrid(scraperName) {
+    // Store and merge the results into the table
+    for (const newFlight of this.scraperResults[scraperName]) {
+
+      // Go over all new rows, if they're already in the grid (as identified by the departure and
+      // arrival times being the same), combine them, though display the cheapest mileage fare first
+      let foundRow = false
+      for (const checkResultRow of this.resultRows) {
+        if (checkResultRow.departureDateTime === newFlight.departureDateTime && checkResultRow.arrivalDateTime === newFlight.arrivalDateTime) {
+          foundRow = true
+          checkResultRow.scrapersUsed[scraperName] = newFlight
+
+          for (const className of ["economy", "business", "first"]) {
+            if (newFlight.costs[className].miles !== null) {
+              let overwrite = false
+              if (newFlight.costs[className].miles < checkResultRow.costs[className].miles)
+                overwrite = true
+
+              // This is the first time we add miles into an existing row
+              if (newFlight.costs[className].miles > 0 && checkResultRow.costs[className].miles === null)
+                overwrite = true
+
+              // If miles are the same on this new one, select it if it's less cash than the existing one
+              // or if it actually has a cash amount.
+              if (newFlight.costs[className].miles === checkResultRow.costs[className].miles) {
+                if (newFlight.costs[className].cash !== null) {
+                  if (checkResultRow.costs[className].cash === null) {
+                    overwrite = true
+                  } else if (newFlight.costs[className].cash < checkResultRow.costs[className].cash) {
+                    overwrite = true
+                  }
+                }
+              }
+
+              if (overwrite) {
+                // A better match was found
+                checkResultRow.costs[className].miles = newFlight.costs[className].miles
+                checkResultRow.costs[className].cash = newFlight.costs[className].cash
+                checkResultRow.costs[className].scraper = scraperName
+              }
+            }
+          }
+          break
+        }
+      }
+      if (!foundRow) {
+        /** @type {SearchResultRow} */
+        const newRow = {
+          scrapersUsed: {[scraperName]: newFlight},
+          ...JSON.parse(JSON.stringify(newFlight))    // copy the object
+        }
+
+        // We'll assume this is the cheapest mileage option since it's the first
+        for (const className of ["economy", "business", "first"]) {
+          if (newRow.costs[className].miles !== null)
+            newRow.costs[className].scraper = scraperName
+        }
+
+        this.resultRows.push(newRow)
+      }
+    }
+
+    this.gridView.grid.api.setRowData(this.resultRows)
+  }
+
+  /** Runs a scraper and adds its results to the grid
+   * @param {string} scraperName
+   * @param {SearchQuery} query
+   * @param {HTMLElement} statusElement */
+  async runScraperAndAddToGrid(scraperName, query, statusElement) {
+    const result = await this.searchUsingScraper(scraperName, query, statusElement)
+    if (result && result.scraperResult) {
+      this.scraperResults[scraperName] = result.scraperResult.searchResults
+      this.addScraperResultsToGrid(scraperName)
+    }
+  }
+
   async search() {
+    // Reset the previous results if any
+    const statusElement = /** @type {HTMLDivElement} */ (document.getElementById("searchStatus"))
+    statusElement.innerHTML = ""
+    this.resultRows = []
+    this.scraperResults = {}
+
     this.gridView.grid.api.showLoadingOverlay()
 
     /** @type {SearchQuery} */
-    const searchParams = {
+    const query = {
       origin: this.config.origin,
       destination: this.config.destination,
       date: this.config.date
     }
 
-    /** @type {Array<SearchResultRow>} */
-    const resultRows = []
-
-    /** @type {Object<string, Array<SearchResult>>} */
-    const scraperResults = {}
-
-    const statusElement = /** @type {HTMLDivElement?} */ (document.getElementById("searchStatus"))
-    if (!statusElement)
-      throw new Error("Missing status div")
-    statusElement.innerHTML = ""
-
-    /** @param {ScraperParams} scraperParams */
-    const runScraper = async(scraperParams) => {
-      const scraperName = scraperParams.scraper
-      const startTime = (new Date()).valueOf()
-
-      // Keep a per-scraper status visible
-      const statusDiv = document.createElement("div")
-      statusDiv.innerHTML = `Searching ${scraperName}...`
-      statusElement.appendChild(statusDiv)
-
-      // Wait for scraper results
-      console.log(`Running scraper '${scraperName}'...`)
-
-      const result = await this.cloud.run(scraperParams)
-      if (result.scraperResult) {
-        console.log(`Scraper '${scraperName}' returned ${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}.`)
-      } else {
-        console.log(`Scraper '${scraperName}' errored.`)
-        result.scraperResult = {searchResults: []}
-      }
-
-      // Individual status per scraper
-      const statusLine = result.error ? `Error: ${result.error.name || result.error.message.substr(0, 25)}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
-      statusDiv.innerHTML = `${scraperName} -
-        ${statusLine} (${((new Date()).valueOf() - startTime) / 1000}s) -
-        <a href="data:image/jpeg;base64,${result.screenshot}" target="_blank">show screenshot</a>
-        <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}" target="_blank">show result</a> (right click to open)`
-
-      // Store and merge the results into the table
-      scraperResults[scraperName] = result.scraperResult.searchResults
-      for (const newFlight of scraperResults[scraperName]) {
-        let foundRow = false
-        for (const checkResultRow of resultRows) {
-          if (checkResultRow.departureDateTime === newFlight.departureDateTime && checkResultRow.arrivalDateTime === newFlight.arrivalDateTime) {
-            foundRow = true
-            checkResultRow.scrapersUsed[scraperName] = newFlight
-
-            for (const className of ["economy", "business", "first"]) {
-              if (newFlight.costs[className].miles !== null) {
-                let overwrite = false
-                if (newFlight.costs[className].miles < checkResultRow.costs[className].miles)
-                  overwrite = true
-
-                // This is the first time we add miles into an existing row
-                if (newFlight.costs[className].miles > 0 && checkResultRow.costs[className].miles === null)
-                  overwrite = true
-
-                // If miles are the same on this new one, select it if it's less cash than the existing one
-                // or if it actually has a cash amount.
-                if (newFlight.costs[className].miles === checkResultRow.costs[className].miles) {
-                  if (newFlight.costs[className].cash !== null) {
-                    if (checkResultRow.costs[className].cash === null) {
-                      overwrite = true
-                    } else if (newFlight.costs[className].cash < checkResultRow.costs[className].cash) {
-                      overwrite = true
-                    }
-                  }
-                }
-
-                if (overwrite) {
-                  // A better match was found
-                  checkResultRow.costs[className].miles = newFlight.costs[className].miles
-                  checkResultRow.costs[className].cash = newFlight.costs[className].cash
-                  checkResultRow.costs[className].scraper = scraperName
-                }
-              }
-            }
-            break
-          }
-        }
-        if (!foundRow) {
-          /** @type {SearchResultRow} */
-          const newRow = {
-            scrapersUsed: {[scraperName]: newFlight},
-            ...JSON.parse(JSON.stringify(newFlight))    // copy the object
-          }
-
-          // We'll assume this is the cheapest mileage option since it's the first
-          for (const className of ["economy", "business", "first"]) {
-            if (newRow.costs[className].miles !== null)
-              newRow.costs[className].scraper = scraperName
-          }
-
-          resultRows.push(newRow)
-        }
-      }
-      this.gridView.grid.api.setRowData(resultRows)
-    }
-
     console.log("Starting search...")
     const queries = []
     for (const scraperName of Object.keys(this.config.scrapers)) {
-      const extraParams = {}
-      if (this.config.scrapers[scraperName].extraParams) {
-        Object.keys(this.config.scrapers[scraperName].extraParams).forEach((/** @type {string} */ paramName) => {
-          extraParams[`${paramName}`] = this.config.scrapers[scraperName].extraParams[paramName].value
-        })
-      }
-
-      queries.push(runScraper({
-        scraper: scraperName,
-        proxy: this.config.scrapers[scraperName].useProxy ? this.config.proxyUrl : undefined,    // eslint-disable-line no-undefined
-        params: {...searchParams, ...extraParams}
-      }))
+      queries.push(this.runScraperAndAddToGrid(scraperName, query, statusElement))
     }
     await Promise.all(queries)
 
