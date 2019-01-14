@@ -15,7 +15,7 @@ exports.scraperMain = async(page, input) => {
   let result = 0
   try {     // eslint-disable-line no-useless-catch
     result = await Promise.race([
-      page.waitForXPath("//h3[text()='Departing flights']", {timeout: 90000}).then(() => 0),
+      page.waitForSelector("#AIR_SEARCH_RESULT_CONTEXT_ID0 tbody[id]", {timeout: 90000}).then(() => 0),
       page.waitForXPath("//p[contains(text(), 'No flights have been found')]", {timeout: 90000}).then(() => 1),
       page.waitForXPath("//h1[text()='Select Your Flight']", {timeout: 90000}).then(() => 2),
       page.waitForXPath("//div[contains(text(),'Please enter valid ')]", {timeout: 90000}).then(() => 3)
