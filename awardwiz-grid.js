@@ -35,11 +35,16 @@ export default class AwardWizGrid {
     return `(${cost.scraper}${totalQuotes > 1 ? `+${totalQuotes - 1}` : ""}) ${cashFormatted} + ${milesFormatter.format(cost.miles / 1000)}k`
   }
 
+  /** @param {string} date */
+  static stringDateToDate(date) {
+    return new Date(parseInt(date.substr(0, 4), 10), parseInt(date.substr(5, 2), 10) - 1, parseInt(date.substr(8, 2), 10), parseInt(date.substr(11, 2), 10), parseInt(date.substr(14, 2), 10))
+  }
+
   /** @param {import("AgGrid").ValueFormatterParams} params */
   static dateTimeFormatter(params) {
     const hourMinuteFormatter = new Intl.DateTimeFormat("en-US", {hour: "numeric", minute: "numeric"})
     const dayDiff = (new Date(params.value.substr(0, 10)).valueOf() - new Date(params.data.departureDateTime.substr(0, 10)).valueOf()) / 86400000
-    return `${dayDiff === 0 ? "" : "("}${dayDiff > 0 ? "+" : ""}${dayDiff === 0 ? "" : `${dayDiff}) `}${hourMinuteFormatter.format(new Date(params.value))}`
+    return `${dayDiff === 0 ? "" : "("}${dayDiff > 0 ? "+" : ""}${dayDiff === 0 ? "" : `${dayDiff}) `}${hourMinuteFormatter.format(AwardWizGrid.stringDateToDate(params.value))}`
   }
 
   /** @param {import("AgGrid").ValueFormatterParams} params */
