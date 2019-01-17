@@ -6,7 +6,7 @@
  */
 exports.scraperMain = async(page, input) => {
   console.log("Going to search page with pre-filled fields...")
-  await page.goto(`https://book.jetblue.com/shop/search/#/book/from/${input.origin}/to/${input.destination}/depart/${input.date.substr(8, 2)}-${input.date.substr(5, 2)}-${input.date.substr(0, 4)}/return/false/pax/ADT-1/redemption/true/promo/false`)
+  await page.goto(`https://book.jetblue.com/shop/search/#/book/from/${input.origin}/to/${input.destination}/depart/${input.date.substr(8, 2)}-${input.date.substr(5, 2)}-${input.date.substr(0, 4)}/return/false/pax/ADT-1/redemption/true/promo/false`, {waitUntil: "networkidle0"})
 
   console.log("Starting search and waiting for results...")
   await page.waitForSelector("input[value='Find it']", {timeout: 90000})
