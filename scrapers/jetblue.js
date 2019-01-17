@@ -18,7 +18,8 @@ exports.scraperMain = async(page, input) => {
       page.waitForSelector("#AIR_SEARCH_RESULT_CONTEXT_ID0 tbody[id]", {timeout: 90000}).then(() => 0),
       page.waitForXPath("//p[contains(text(), 'No flights have been found')]", {timeout: 90000}).then(() => 1),
       page.waitForXPath("//h1[text()='Select Your Flight']", {timeout: 90000}).then(() => 2),
-      page.waitForXPath("//div[contains(text(),'Please enter valid ')]", {timeout: 90000}).then(() => 3)
+      page.waitForXPath("//div[contains(text(),'Please enter valid ')]", {timeout: 90000}).then(() => 3),
+      page.waitForXPath("//p[contains(text(),'Jetblue.com is temporarily unavailable')]", {timeout: 90000}).then(() => 4)
     ])
   } catch (err) {   // necessary to deal with a puppeteer bug where closing the browser causes a race condition
     throw err
@@ -32,6 +33,8 @@ exports.scraperMain = async(page, input) => {
   } else if (result === 3) {
     console.log("One or more airports not supported")
     return {searchResults: []}
+  } else if (result === 4) {
+    throw new Error("Jetblue down")
   }
 
   /** @param {import("puppeteer").ElementHandle<Element>} parentElement

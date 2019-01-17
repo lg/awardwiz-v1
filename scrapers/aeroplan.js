@@ -10,8 +10,20 @@ exports.scraperMain = async(page, input) => {
     })
   }
 
-  console.log("Going to homepage...")
+  console.log("Going to homepage and selecting language...")
   await page.goto("https://www.aeroplan.com")
+
+  try {     // eslint-disable-line no-useless-catch
+    let result = 0
+    result = await Promise.race([
+      page.waitForSelector(".btn-primary", {timeout: 90000}).then(() => 0),
+      page.waitForXPath("//p[contains(text(), 'currently undergoing routine maintenance')]", {timeout: 90000}).then(() => 1)
+    ])
+    if (result === 1)
+      throw new Error("Aeroplan down")
+  } catch (err) {
+    throw err
+  }
 
   console.log("Selecting language...")
   await waitAndClick(".btn-primary")
