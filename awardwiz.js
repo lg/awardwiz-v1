@@ -268,12 +268,22 @@ export default class AwardWiz {
       date: this.config.date
     }
 
-    console.log("Starting search...")
-    const queries = []
-    for (const scraperName of Object.keys(this.config.scrapers)) {
-      queries.push(this.runScraperAndAddToGrid(scraperName, query, statusElement))
-    }
-    await Promise.all(queries)
+    console.log("Searching ita/southwest to find flights and airlines...")
+    await Promise.all([
+      this.runScraperAndAddToGrid("ita", query, statusElement),
+      this.runScraperAndAddToGrid("southwest", query, statusElement)
+    ])
+    this.gridView.grid.api.hideOverlay()
+
+    const uniqueAirlineCodes = [...new Set(this.resultRows.map(row => (row.flightNo || "").substr(0, 2)))]
+    const useScrapers = []
+    for (const scraperName of Object.keys(this.config.scrapers))
+      if (this.config.scrapers[scraperName].searchedAirlines.some((/** @type {string} */ checkCode) => uniqueAirlineCodes.includes(checkCode)))
+        if (useScrapers.indexOf(scraperName) === -1)
+          useScrapers.push(scraperName)
+
+    console.log(`Starting search with scrapers: ${useScrapers.join(", ")}...`)
+    await Promise.all(useScrapers.map(scraperName => this.runScraperAndAddToGrid(scraperName, query, statusElement)))
 
     console.log("Completed search.")
     this.gridView.grid.api.hideOverlay()

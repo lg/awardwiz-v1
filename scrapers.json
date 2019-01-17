@@ -7,7 +7,7 @@
     "searchedAirlines": ["AL", "AA"]
   },
   "delta": {
-    "searchedAirlines": ["DL"]
+    "searchedAirlines": ["DL", "WS"]
   },
   "ita": {
     "searchedAirlines": [],
