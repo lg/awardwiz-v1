@@ -52,11 +52,15 @@ exports.scraperMain = async(page, input) => {
   await page.click(".btn-find-results")
 
   console.log("Waiting for Flexible Dates table...")
-  const resultFoundPromise = page.waitForSelector(".exactMatchCell a", {timeout: 90000}).then(() => 0)
-  const errorMessagePromise = page.waitForXPath("//div[contains(text(), 'there are no scheduled Delta/Partner')]", {timeout: 90000}).then(() => 1)
-  if (await Promise.race([resultFoundPromise, errorMessagePromise]) === 1) {
-    console.log("No flights found")
-    return {searchResults: []}
+  try {     // eslint-disable-line no-useless-catch
+    const resultFoundPromise = page.waitForSelector(".exactMatchCell a", {timeout: 90000}).then(() => 0)
+    const errorMessagePromise = page.waitForXPath("//div[contains(text(), 'there are no scheduled Delta/Partner')]", {timeout: 90000}).then(() => 1)
+    if (await Promise.race([resultFoundPromise, errorMessagePromise]) === 1) {
+      console.log("No flights found")
+      return {searchResults: []}
+    }
+  } catch (err) {
+    throw err
   }
 
   await page.waitForSelector(".exactMatchCell a", {timeout: 90000})
@@ -98,16 +102,18 @@ exports.scraperMain = async(page, input) => {
       let classOfService = null
       if (fare.dominantSegmentBrandId === "FIRST" || fare.dominantSegmentBrandId === "D1") {
         classOfService = "first"
-      } else if (fare.dominantSegmentBrandId === "MAIN" || fare.dominantSegmentBrandId === "DCP") {
+      } else if (fare.dominantSegmentBrandId === "MAIN" || fare.dominantSegmentBrandId === "DCP" || fare.dominantSegmentBrandId === "E") {
         classOfService = "economy"
       } else {
         throw new Error(`Unknown fare type ${fare.dominantSegmentBrandId}`)
       }
 
-      const cash = fare.totalPrice.currency.amount
+      let cash = fare.totalPrice.currency.amount
       const {miles} = fare.totalPrice.miles
 
-      if (fare.totalPrice.currency.code !== "USD")
+      if (fare.totalPrice.currency.code === "CAD") {
+        cash *= 1.33
+      } else if (fare.totalPrice.currency.code !== "USD")
         throw new Error("Only USD prices are allowed")
 
       let setCosts = true
