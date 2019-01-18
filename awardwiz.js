@@ -279,7 +279,7 @@ export default class AwardWiz {
     const useScrapers = []
     for (const scraperName of Object.keys(this.config.scrapers))
       if (this.config.scrapers[scraperName].searchedAirlines.some((/** @type {string} */ checkCode) => uniqueAirlineCodes.includes(checkCode)))
-        if (useScrapers.indexOf(scraperName) === -1)
+        if (useScrapers.indexOf(scraperName) === -1 && scraperName !== "southwest")
           useScrapers.push(scraperName)
 
     console.log(`Starting search with scrapers: ${useScrapers.join(", ")}...`)
