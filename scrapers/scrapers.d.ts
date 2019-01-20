@@ -83,6 +83,7 @@ interface ScraperResult {
   }
   error?: Error
   hashCheck?: string
+  awsLogURL?: string
 }
 
 declare type ConsoleMethod = "error" | "log" | "info"
@@ -142,10 +143,5 @@ declare module "proxy-chain" {
 }
 
 ///////
-
-// TODO: fix the below by importing proper definitions and remove no-tscheck
-declare class AWSContext {
-  succeed(response: any): any
-}
 
 // TODO: import aws stuff

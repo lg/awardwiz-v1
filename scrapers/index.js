@@ -23,7 +23,7 @@ let proxyServer = null
 
 /**
  * @param {ScraperParams & ScraperHashCheckParams} event
- * @param {AWSContext} context
+ * @param {import("aws-lambda").Context} context
  */
 exports.awsEntry = async(event, context) => {
   // AWS doesn't pre-package modules, as such, download them and install
@@ -34,7 +34,7 @@ exports.awsEntry = async(event, context) => {
   process.env.NODE_ENV = "production"
   execSync("cp -f /var/task/package.json /tmp && cd /tmp && npm install")
 
-  const response = await handleRequest(event)
+  const response = await handleRequest({...event, awsLogURL: `https://${process.env.AWS_REGION}.console.aws.amazon.com/cloudwatch/home?region=${process.env.AWS_REGION}#logEventViewer:group=${encodeURI(context.logGroupName)};stream=${encodeURI(context.logStreamName)}`})
   return context.succeed(response)
 }
 
@@ -122,7 +122,7 @@ const instrumentConsole = async toRun => {
   return fullConsoleLog
 }
 
-/** @param {ScraperParams & ScraperHashCheckParams} params */
+/** @param {ScraperParams & ScraperHashCheckParams & {awsLogURL?: string}} params */
 const handleRequest = async params => {
   console.log(`Welcome! Request is: ${JSON.stringify(params)}`)
 
@@ -157,6 +157,7 @@ const handleRequest = async params => {
   })
 
   response.screenshot = await page.screenshot({type: "jpeg", quality: 90, fullPage: true, encoding: "base64"})
+  response.awsLogURL = params.awsLogURL
 
   console.log("Closing browser...")
   await browser.close()

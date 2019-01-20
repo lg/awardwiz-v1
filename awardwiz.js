@@ -169,7 +169,9 @@ export default class AwardWiz {
     statusDiv.innerHTML = `${scraperName} -
       ${statusLine} (${((new Date()).valueOf() - startTime) / 1000}s) -
       <a href="data:image/jpeg;base64,${result.screenshot}" target="_blank">show screenshot</a>
-      <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}" target="_blank">show result</a> (right click to open)`
+      <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}" target="_blank">show result</a>
+      <a href="${result.awsLogURL}" target="_blank">show cloudwatch log</a>
+      (right click to open)`
 
     return result
   }
