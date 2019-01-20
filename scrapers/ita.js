@@ -16,25 +16,44 @@ exports.scraperMain = async(page, input) => {
   const tabs = await page.$$(".gwt-TabBarItem .gwt-HTML")
   await tabs[1].click()
 
-  try {
-    console.log("Setting origin...")
-    const fields = await page.$$(".gwt-SuggestBox")
-    await fields[2].focus()
-    await page.keyboard.type(input.origin)
-    const originXPath = `//span[contains(text(), '(${input.origin})')]`
-    await page.waitForXPath(originXPath, {timeout: 5000})
-    await page.evaluate(`document.evaluate("${originXPath}", document).iterateNext().click()`)
+  console.log("Typing origin...")
 
-    console.log("Setting destination...")
-    await fields[3].focus()
-    await page.keyboard.type(input.destination)
-    const destinationXPath = `//span[contains(text(), '(${input.destination})')]`
-    await page.waitForXPath(destinationXPath, {timeout: 5000})
-    await page.evaluate(`document.evaluate("${destinationXPath}", document).iterateNext().click()`)
-  } catch (err) {
-    console.log("Airport wasn't found")
-    return {searchResults: []}
-  }
+  // Do not allow multiple requests to be outgoing for the autocomplete
+  await page.setRequestInterception(true)
+  page.on("request", interceptedRequest => {
+    if (interceptedRequest.url() === "https://matrix.itasoftware.com/geosearch")
+      if ([input.origin, input.destination].indexOf(JSON.parse(JSON.parse(interceptedRequest.postData() || "").params)["1"]) === -1)
+        return interceptedRequest.abort()
+    return interceptedRequest.continue()
+  })
+
+  const fields = await page.$$(".gwt-SuggestBox")
+  await fields[2].focus()
+  await page.keyboard.type(input.origin)    // dispatches ajax autocomplete queries per letter
+
+  console.log("  Waiting for autocomplete lookup...")
+  await page.waitForResponse(response => (response.url() === "https://matrix.itasoftware.com/geosearch") && JSON.parse(JSON.parse(response.request().postData() || "").params)["1"] === input.origin, {timeout: 90000})
+  await page.waitFor(1000)    // results (if any) take at most a second to be processed
+
+  console.log("  Looking for autocomplete result...")
+  const originXPath = `//span[contains(text(), '(${input.origin})')]`
+  let elements = await page.$x(originXPath)
+  if (elements.length === 0)
+    throw new Error("Airport not found")
+  console.log("  Airport found, clicking element...")
+  await elements[0].click()
+
+  console.log("Setting destination...")
+  await fields[3].focus()
+  await page.keyboard.type(input.destination)
+  await page.waitForResponse(response => (response.url() === "https://matrix.itasoftware.com/geosearch") && JSON.parse(JSON.parse(response.request().postData() || "").params)["1"] === input.destination, {timeout: 90000})
+  await page.waitFor(1000)    // results (if any) take at most a second to be processed
+
+  const destinationXPath = `//span[contains(text(), '(${input.destination})')]`
+  elements = await page.$x(destinationXPath)
+  if (elements.length === 0)
+    throw new Error("Airport not found")
+  await elements[0].click()
 
   console.log("Setting no connections...")
   const [stopsElement] = (await page.$x("//label[contains(text(), 'Stops')]/..//select"))
