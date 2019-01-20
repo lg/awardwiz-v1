@@ -165,7 +165,7 @@ export default class AwardWiz {
     }
 
     // Individual status per scraper
-    const statusLine = result.error ? `Error: ${result.error.name || result.error.message.substr(0, 25)}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
+    const statusLine = result.error ? `Error: ${result.error.name || result.error.message.substr(0, 50)}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
     statusDiv.innerHTML = `${scraperName} -
       ${statusLine} (${((new Date()).valueOf() - startTime) / 1000}s) -
       <a href="data:image/jpeg;base64,${result.screenshot}" target="_blank">show screenshot</a>
@@ -282,8 +282,10 @@ export default class AwardWiz {
         if (useScrapers.indexOf(scraperName) === -1 && scraperName !== "southwest")
           useScrapers.push(scraperName)
 
-    console.log(`Starting search with scrapers: ${useScrapers.join(", ")}...`)
-    await Promise.all(useScrapers.map(scraperName => this.runScraperAndAddToGrid(scraperName, query, statusElement)))
+    if (useScrapers.length > 0) {
+      console.log(`Starting search with scrapers: ${useScrapers.join(", ")}...`)
+      await Promise.all(useScrapers.map(scraperName => this.runScraperAndAddToGrid(scraperName, query, statusElement)))
+    }
 
     console.log("Completed search.")
     this.gridView.grid.api.hideOverlay()
