@@ -123,8 +123,10 @@ export default class AwardWizGrid {
     const gridOptions = {
       columnDefs: [
         {headerName: "Flight", field: "flightNo", width: 70, tooltip: (params) => `${params.data.airline} flight ${params.data.flightNo.substr(3)}`},
-        {headerName: "Depart", field: "departureDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, tooltipField: "departureDateTime", width: 90, sort: "asc", cellStyle: {textAlign: "right"}},
-        {headerName: "Arrive", field: "arrivalDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, tooltipField: "arrivalDateTime", width: 90, cellStyle: {textAlign: "right"}},
+        {headerName: "Origin", field: "departureDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, tooltipField: "departureDateTime", width: 90, sort: "asc", cellStyle: {textAlign: "right"}},
+        {headerName: "O", field: "origin", width: 45, cellStyle: {textAlign: "center"}},
+        {headerName: "D", field: "destination", width: 45, cellStyle: {textAlign: "center"}},
+        {headerName: "Dest", field: "arrivalDateTime", valueFormatter: AwardWizGrid.dateTimeFormatter, tooltipField: "arrivalDateTime", width: 90, cellStyle: {textAlign: "left"}},
         {headerName: "Economy", field: "costs.economy.miles", valueFormatter: AwardWizGrid.costFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 160},
         {headerName: "Business", field: "costs.business.miles", valueFormatter: AwardWizGrid.costFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 160},
         {headerName: "First", field: "costs.first.miles", valueFormatter: AwardWizGrid.costFormatter, cellStyle: AwardWizGrid.milesAndCashStyler, comparator: AwardWizGrid.milesComparator, filter: "agNumberColumnFilter", width: 160}

@@ -16,44 +16,55 @@ exports.scraperMain = async(page, input) => {
   const tabs = await page.$$(".gwt-TabBarItem .gwt-HTML")
   await tabs[1].click()
 
-  console.log("Typing origin...")
-
   // Do not allow multiple requests to be outgoing for the autocomplete
   await page.setRequestInterception(true)
   page.on("request", interceptedRequest => {
     if (interceptedRequest.url() === "https://matrix.itasoftware.com/geosearch")
-      if ([input.origin, input.destination].indexOf(JSON.parse(JSON.parse(interceptedRequest.postData() || "").params)["1"]) === -1)
-        return interceptedRequest.abort()
+      if (JSON.parse(interceptedRequest.postData() || "").method === "suggest")
+        if ([input.origin, input.destination].indexOf(JSON.parse(JSON.parse(interceptedRequest.postData() || "").params)["1"]) === -1)
+          return interceptedRequest.abort()
     return interceptedRequest.continue()
   })
 
-  const fields = await page.$$(".gwt-SuggestBox")
-  await fields[2].focus()
-  await page.keyboard.type(input.origin)    // dispatches ajax autocomplete queries per letter
+  for (const curField of ["origin", "destination"]) {
+    const airport = curField === "origin" ? input.origin : input.destination
+    const oneIndex = curField === "origin" ? 1 : 2
+    console.log(`Typing ${curField} of ${airport}...`)
 
-  console.log("  Waiting for autocomplete lookup...")
-  await page.waitForResponse(response => (response.url() === "https://matrix.itasoftware.com/geosearch") && JSON.parse(JSON.parse(response.request().postData() || "").params)["1"] === input.origin, {timeout: 90000})
-  await page.waitFor(1000)    // results (if any) take at most a second to be processed
+    const field = await page.waitForXPath(`(//input[contains(@class,'gwt-SuggestBox') and not(ancestor::div[contains(@style,'display: none')])])[${oneIndex}]`)
+    await field.focus()
+    await page.keyboard.type(airport)    // dispatches ajax autocomplete queries per letter
 
-  console.log("  Looking for autocomplete result...")
-  const originXPath = `//span[contains(text(), '(${input.origin})')]`
-  let elements = await page.$x(originXPath)
-  if (elements.length === 0)
-    throw new Error("Airport not found")
-  console.log("  Airport found, clicking element...")
-  await elements[0].click()
+    console.log("  Waiting for autocomplete lookup...")
+    await page.waitForResponse(response => (response.url() === "https://matrix.itasoftware.com/geosearch") && JSON.parse(JSON.parse(response.request().postData() || "").params)["1"] === airport, {timeout: 90000})
+    await page.waitFor(1000)    // results (if any) take at most a second to be processed
 
-  console.log("Setting destination...")
-  await fields[3].focus()
-  await page.keyboard.type(input.destination)
-  await page.waitForResponse(response => (response.url() === "https://matrix.itasoftware.com/geosearch") && JSON.parse(JSON.parse(response.request().postData() || "").params)["1"] === input.destination, {timeout: 90000})
-  await page.waitFor(1000)    // results (if any) take at most a second to be processed
+    console.log("  Looking for autocomplete result...")
+    const elements = await page.$x(`//span[contains(text(), '(${airport})')]`)
+    if (elements.length === 0)
+      throw new Error("Airport not found")
+    console.log("  Airport found, clicking element...")
+    await elements[0].click()
 
-  const destinationXPath = `//span[contains(text(), '(${input.destination})')]`
-  elements = await page.$x(destinationXPath)
-  if (elements.length === 0)
-    throw new Error("Airport not found")
-  await elements[0].click()
+    console.log("  Clicking nearby...")
+    const nearbyLink = await page.waitForXPath(`(//a[text()='Nearby' and not(ancestor::div[contains(@style,'display: none')])])[${oneIndex}]`, {timeout: 90000})
+    await nearbyLink.click()
+
+    console.log("  Waiting for results...")
+    await page.waitForResponse(response => (response.url() === "https://matrix.itasoftware.com/geosearch") && JSON.parse(response.request().postData() || "").method === "findAirportsNearCoords", {timeout: 90000})
+
+    console.log("  Switching to 50mi...")
+    await page.select(".popupContent select", "50")
+
+    console.log("  Waiting for results again...")
+    await page.waitForResponse(response => (response.url() === "https://matrix.itasoftware.com/geosearch") && JSON.parse(response.request().postData() || "").method === "findAirportsNearCoords", {timeout: 90000})
+
+    console.log("  Selecting all...")
+    await (await page.waitForXPath("//label[.='Select all']/../input")).click()
+
+    console.log("  Closing dialog...")
+    await (await page.waitForXPath("//img[@width='13' and @height='13' and not(ancestor::div[contains(@style,'display: none')])]")).click()
+  }
 
   console.log("Setting no connections...")
   const [stopsElement] = (await page.$x("//label[contains(text(), 'Stops')]/..//select"))
@@ -80,8 +91,7 @@ exports.scraperMain = async(page, input) => {
   console.log("Starting search...")
   await Promise.all([
     page.click("button"),
-    page.waitForResponse("https://matrix.itasoftware.com/search", {timeout: 0}),
-    page.waitForResponse("https://matrix.itasoftware.com/pricecurve", {timeout: 0})
+    page.waitForResponse("https://matrix.itasoftware.com/search", {timeout: 0})
   ])
 
   // We use time-bars mode because it gives us more info about the flights

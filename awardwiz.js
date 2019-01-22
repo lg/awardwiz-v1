@@ -149,24 +149,25 @@ export default class AwardWiz {
 
     // Keep a per-scraper status visible
     const statusDiv = document.createElement("div")
-    statusDiv.innerHTML = `Searching ${scraperName}...`
+    const scraperIdentifier = `${scraperName} (${searchQuery.origin}→${searchQuery.destination})`
+    statusDiv.innerHTML = `Searching ${scraperIdentifier}...`
     statusElement.appendChild(statusDiv)
 
     // Wait for scraper results
-    console.log(`Running scraper '${scraperName}'...`)
+    console.log(`Running scraper ${scraperIdentifier}...`)
 
     const startTime = (new Date()).valueOf()
     const result = await this.cloud.run(scraperParams)
     if (result.scraperResult) {
-      console.log(`Scraper '${scraperName}' returned ${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}.`)
+      console.log(`Scraper ${scraperIdentifier} returned ${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}.`)
     } else {
-      console.log(`Scraper '${scraperName}' errored.`)
+      console.log(`Scraper ${scraperIdentifier} errored.`)
       result.scraperResult = {searchResults: []}
     }
 
     // Individual status per scraper
     const statusLine = result.error ? `Error: ${result.error.name || result.error.message.substr(0, 50)}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
-    statusDiv.innerHTML = `${scraperName} -
+    statusDiv.innerHTML = `${scraperIdentifier} -
       ${statusLine} (${((new Date()).valueOf() - startTime) / 1000}s) -
       <a href="data:image/jpeg;base64,${result.screenshot}" target="_blank">show screenshot</a>
       <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}" target="_blank">show result</a>
@@ -272,21 +273,27 @@ export default class AwardWiz {
 
     console.log("Searching ita/southwest to find flights and airlines...")
     await Promise.all([
-      this.runScraperAndAddToGrid("ita", query, statusElement),
-      this.runScraperAndAddToGrid("southwest", query, statusElement)
+      this.runScraperAndAddToGrid("ita", query, statusElement)
+      //this.runScraperAndAddToGrid("southwest", query, statusElement)
     ])
     this.gridView.grid.api.hideOverlay()
 
-    const uniqueAirlineCodes = [...new Set(this.resultRows.map(row => (row.flightNo || "").substr(0, 2)))]
-    const useScrapers = []
-    for (const scraperName of Object.keys(this.config.scrapers))
-      if (this.config.scrapers[scraperName].searchedAirlines.some((/** @type {string} */ checkCode) => uniqueAirlineCodes.includes(checkCode)))
-        if (useScrapers.indexOf(scraperName) === -1 && scraperName !== "southwest")
-          useScrapers.push(scraperName)
+    // Convert the airline codes to all the scrapers which support those airlines and do
+    // it per origin->destination mapping from ita
+    const scrapersAndOrigDest = []
+    for (const row of this.resultRows)
+      for (const checkScraperName of Object.keys(this.config.scrapers))
+        if (this.config.scrapers[checkScraperName].searchedAirlines.some((/** @type {string} */ checkCode) => checkCode === (row.flightNo || "").substr(0, 2)))
+          scrapersAndOrigDest.push(`${checkScraperName}|${row.origin}|${row.destination}`)
+    const uniqueScrapersAndOrigDest = [...new Set(scrapersAndOrigDest)]
 
-    if (useScrapers.length > 0) {
-      console.log(`Starting search with scrapers: ${useScrapers.join(", ")}...`)
-      await Promise.all(useScrapers.map(scraperName => this.runScraperAndAddToGrid(scraperName, query, statusElement)))
+    if (uniqueScrapersAndOrigDest.length > 0) {
+      console.log(`Starting search with scrapers: ${uniqueScrapersAndOrigDest.join(", ")}...`)
+      await Promise.all(uniqueScrapersAndOrigDest.map(scaperAndOrigDest => {
+        const [scraperName, origin, destination] = scaperAndOrigDest.split("|")
+        const properOrigDestQuery = {...query, origin, destination}
+        return this.runScraperAndAddToGrid(scraperName, properOrigDestQuery, statusElement)
+      }))
     }
 
     console.log("Completed search.")

@@ -27,9 +27,15 @@ Open Console (⌥-⌘-C) to view status<br/><br/>
 </details>
 
 <br/>
-<label for="origin">origin: </label><input type="text" id="origin" value=""/> (ex. SFO)<br/>
-<label for="destination">destination: </label><input type="text" id="destination" value=""/> (ex. YOW)<br/>
-<label for="date">date: </label><input type="text" id="date" value=""/> (yyyy-mm-dd)<br/>
+<label for="origin">origin: </label><input type="text" id="origin" value="" placeholder="ex. SFO" />
+<input type="checkbox" id="originNearby" checked disabled /><label for="originNearby">and nearby</label>
+<br/>
+<label for="destination">destination: </label><input type="text" id="destination" value="" placeholder="ex. YOW" />
+<input type="checkbox" id="destinationNearby" checked disabled/><label for="destinationNearby">and nearby</label>
+<br/>
+<label for="date">date: </label><input type="text" id="date" value="" /> (yyyy-mm-dd)
+
+<br/>
 <br/>
 <button id="prep" onclick="window.awardwiz.prep()">prep</button>
 <button id="search" onclick="window.awardwiz.search()">search</button>

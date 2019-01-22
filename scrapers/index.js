@@ -109,6 +109,7 @@ const instrumentConsole = async toRun => {
 
     /** @param {any} message */
     console[consoleMethod] = message => {
+      message = `[${(Date.now() / 1000).toFixed(3)}] ${message}`
       oldConsole[consoleMethod](message)
       const text = message.stack || message.toString()
       fullConsoleLog.push({type: consoleMethod, date: new Date().toISOString(), text})
