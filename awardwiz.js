@@ -288,7 +288,7 @@ export default class AwardWiz {
     const uniqueScrapersAndOrigDest = [...new Set(scrapersAndOrigDest)]
 
     if (uniqueScrapersAndOrigDest.length > 0) {
-      console.log(`Starting search with scrapers: ${uniqueScrapersAndOrigDest.join(", ")}...`)
+      console.log("Starting search...")
       await Promise.all(uniqueScrapersAndOrigDest.map(scaperAndOrigDest => {
         const [scraperName, origin, destination] = scaperAndOrigDest.split("|")
         const properOrigDestQuery = {...query, origin, destination}

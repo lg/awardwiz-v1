@@ -34,7 +34,18 @@ exports.scraperMain = async(page, input) => {
   await page.type(".header-login-form-inner-wrapper #aeroplanNumber", input.username)
   await page.type(".header-login-form-inner-wrapper input[type=password]", input.password)
   await page.click(".header-login-form-inner-wrapper .form-login-submit")
-  await page.waitForSelector(".header-logout-btn", {timeout: 90000})
+
+  try {     // eslint-disable-line no-useless-catch
+    let result = 0
+    result = await Promise.race([
+      page.waitForSelector(".header-logout-btn", {timeout: 90000}).then(() => 0),
+      page.waitForXPath("//span[contains(text(), 'Page Temporarily Unavailable')]", {timeout: 90000}).then(() => 1)
+    ])
+    if (result === 1)
+      throw new Error("Aeroplan down")
+  } catch (err) {
+    throw err
+  }
 
   console.log("Going to search page and waiting for default airport...")
   await page.goto("https://www.aeroplan.com/en/use-your-miles/travel.html", {waitUntil: "networkidle0"})
