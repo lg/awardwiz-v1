@@ -4,7 +4,7 @@
     "extraParams": {"username": {}, "password": {}}
   },
   "alaska": {
-    "searchedAirlines": ["AL", "AA"]
+    "searchedAirlines": ["AS", "AA"]
   },
   "delta": {
     "searchedAirlines": ["DL", "WS"]
