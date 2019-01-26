@@ -13,29 +13,35 @@ exports.scraperMain = async(page, input) => {
   await page.click("input[value='Find it']")
 
   let result = 0
-  try {     // eslint-disable-line no-useless-catch
-    result = await Promise.race([
-      page.waitForSelector("#AIR_SEARCH_RESULT_CONTEXT_ID0 tbody[id]", {timeout: 90000}).then(() => 0),
-      page.waitForXPath("//p[contains(text(), 'No flights have been found')]", {timeout: 90000}).then(() => 1),
-      page.waitForXPath("//h1[text()='Select Your Flight']", {timeout: 90000}).then(() => 2),
-      page.waitForXPath("//div[contains(text(),'Please enter valid ')]", {timeout: 90000}).then(() => 3),
-      page.waitForXPath("//p[contains(text(),'Jetblue.com is temporarily unavailable')]", {timeout: 90000}).then(() => 4)
-    ])
-  } catch (err) {   // necessary to deal with a puppeteer bug where closing the browser causes a race condition
-    throw err
-  }
+  do {
+    try {     // eslint-disable-line no-useless-catch
+      result = await Promise.race([
+        page.waitForSelector("#AIR_SEARCH_RESULT_CONTEXT_ID0 tbody[id]", {timeout: 90000}).then(() => 0),
+        page.waitForXPath("//p[contains(text(), 'No flights have been found')]", {timeout: 90000}).then(() => 1),
+        page.waitForXPath("//h1[text()='Select Your Flight']", {timeout: 90000}).then(() => 2),
+        page.waitForXPath("//div[contains(text(),'Please enter valid ')]", {timeout: 90000}).then(() => 3),
+        page.waitForXPath("//p[contains(text(),'Jetblue.com is temporarily unavailable')]", {timeout: 90000}).then(() => 4),
+        page.waitForXPath("//div[contains(text(),\"Because you've selected today's date\")]", {timeout: 90000}).then(() => 5),
+        page.waitForXPath(`//div[@class='date' and contains(text(), '\t${parseInt(input.date.substr(8, 2), 10)} ')]/../div[contains(@class, 'notAvailText')]`, {timeout: 90000}).then(() => 6)
+      ])
+    } catch (err) {   // necessary to deal with a puppeteer bug where closing the browser causes a race condition
+      throw err
+    }
 
-  if (result === 1) {
-    console.log("No flights found")
-    return {searchResults: []}
-  } else if (result === 2) {
-    throw new Error("Alternate UI")
-  } else if (result === 3) {
-    console.log("One or more airports not supported")
-    return {searchResults: []}
-  } else if (result === 4) {
-    throw new Error("Jetblue down")
-  }
+    if (result === 1 || result === 6) {
+      console.log("No flights found")
+      return {searchResults: []}
+    } else if (result === 2) {
+      throw new Error("Alternate UI")
+    } else if (result === 3) {
+      console.log("One or more airports not supported")
+      return {searchResults: []}
+    } else if (result === 4) {
+      throw new Error("Jetblue down")
+    } else if (result === 5) {
+      await page.click(".continue_button")
+    }
+  } while (result !== 0)
 
   /** @param {import("puppeteer").ElementHandle<Element>} parentElement
    * @param {string} selector

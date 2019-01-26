@@ -63,7 +63,7 @@ exports.scraperMain = async(page, input) => {
     await (await page.waitForXPath("//label[.='Select all']/../input")).click()
 
     console.log("  Closing dialog...")
-    await (await page.waitForXPath("//img[@width='13' and @height='13' and not(ancestor::div[contains(@style,'display: none')])]")).click()
+    await field.click()
   }
 
   console.log("Setting no connections...")
@@ -77,8 +77,7 @@ exports.scraperMain = async(page, input) => {
   await currencyElement.focus()
   await page.keyboard.type("USD")
   const currencySuggestXPath = "//td[contains(text(), '(USD)')]"
-  await page.waitForXPath(currencySuggestXPath, {timeout: 0})
-  await page.evaluate(`document.evaluate("${currencySuggestXPath}", document).iterateNext().click()`)
+  await (await page.waitForXPath(currencySuggestXPath, {timeout: 90000, visible: true})).click()
 
   console.log("Setting date...")
   await (await page.$x("(//div[contains(text(), 'Departure Date')]/..)[1]/div[2]/input"))[0].focus()
