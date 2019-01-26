@@ -1,5 +1,3 @@
-const PAGINATION_SIZE = 100
-
 export default class AwardWizGrid {
   /** @param {HTMLDivElement} gridDiv
    * @param {(event: import("AgGrid").RowClickedEvent) => void} onRowClicked */
@@ -23,7 +21,7 @@ export default class AwardWizGrid {
     const cashFormatter = new Intl.NumberFormat("en-US", {style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0})
     const milesFormatter = new Intl.NumberFormat("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1})
 
-    const cashFormatted = cost.cash ? cashFormatter.format(cost.cash) : "$?"
+    const cashFormatted = cost.cash === null ? "$?" : cashFormatter.format(cost.cash)
     let totalQuotes = 0
     Object.keys(params.data.scrapersUsed).forEach(scraperName => {
       const quote = params.data.scrapersUsed[scraperName]
@@ -138,8 +136,7 @@ export default class AwardWizGrid {
       suppressCellSelection: false,
       suppressRowClickSelection: true,
 
-      pagination: true,
-      paginationPageSize: PAGINATION_SIZE,
+      pagination: false,
 
       onFilterChanged: AwardWizGrid.updateFilterValue,
       onRowClicked: this.onRowClicked

@@ -1,26 +1,29 @@
 {
   "aeroplan": {
-    "searchedAirlines": ["UA", "AC"],
+    "searchesAirlines": ["UA", "AC"],
     "extraParams": {"username": {}, "password": {}}
   },
   "alaska": {
-    "searchedAirlines": ["AS", "AA"]
+    "searchesAirlines": ["AS", "AA"]
+  },
+  "chase": {
+    "searchesAllAirlines": true
   },
   "delta": {
-    "searchedAirlines": ["DL", "WS"]
+    "searchesAirlines": ["DL", "WS"]
   },
   "ita": {
-    "searchedAirlines": [],
+    "searchesAirlines": [],
     "useProxy": true
   },
   "jetblue": {
-    "searchedAirlines": ["B6"]
+    "searchesAirlines": ["B6"]
   },
   "southwest": {
-    "searchedAirlines": ["WN"]
+    "searchesAirlines": ["WN"]
   },
   "united": {
-    "searchedAirlines": ["UA", "AC", "LH"],
+    "searchesAirlines": ["UA", "AC", "LH"],
     "useProxy": true
   }
 }

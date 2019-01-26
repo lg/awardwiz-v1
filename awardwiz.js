@@ -272,6 +272,7 @@ export default class AwardWiz {
     statusElement.innerHTML = ""
     this.resultRows = []
     this.scraperResults = {}
+    this.gridView.grid.api.setRowData([])
 
     this.gridView.grid.api.showLoadingOverlay()
 
@@ -294,7 +295,7 @@ export default class AwardWiz {
     const scrapersAndOrigDest = []
     for (const row of this.resultRows)
       for (const checkScraperName of Object.keys(this.config.scrapers))
-        if (this.config.scrapers[checkScraperName].searchedAirlines.some((/** @type {string} */ checkCode) => checkCode === (row.flightNo || "").substr(0, 2)))
+        if (this.config.scrapers[checkScraperName].searchesAllAirlines || this.config.scrapers[checkScraperName].searchesAirlines.some((/** @type {string} */ checkCode) => checkCode === (row.flightNo || "").substr(0, 2)))
           scrapersAndOrigDest.push(`${checkScraperName}|${row.origin}|${row.destination}`)
     const uniqueScrapersAndOrigDest = [...new Set(scrapersAndOrigDest)]
 
