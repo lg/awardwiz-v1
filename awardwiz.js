@@ -25,7 +25,18 @@ export default class AwardWiz {
       /** @type {Array<SearchResultRow>} */
       this.resultRows = []    // the data more aggregated for the grid view
       /** @type {Object<string, Array<SearchResult>>} */
-      this.scraperResults = {}    // the raw result data from the scrapers
+      this.scraperResults = {};    // the raw result data from the scrapers
+
+      (async() => {
+        const commits = await fetch("https://api.github.com/repos/lg/awardwiz/commits").then(result => result.json())
+        let commitsHTML = ""
+        for (let curCommitIndex = 0; curCommitIndex < 5; curCommitIndex += 1) {
+          const commit = commits[curCommitIndex]
+          commitsHTML += `[${commit.commit.committer.date.substr(0, 10)}] ${commit.commit.message} <a href='${commit.html_url}'>view</a><br/>`
+        }
+        commitsHTML += "<a href='https://github.com/lg/awardwiz/commits/master'>view all</a>";
+        /** @type {HTMLDivElement} */ (document.querySelector("#latestCommits")).innerHTML = commitsHTML
+      })()
 
       return this
     })()
