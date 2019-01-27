@@ -26,6 +26,8 @@ exports.scraperMain = async(page, input) => {
     return interceptedRequest.continue()
   })
 
+  let nearbyOriginAirports = ""
+  let nearbyDestinationAirports = ""
   for (const curField of ["origin", "destination"]) {
     const airport = curField === "origin" ? input.origin : input.destination
     const oneIndex = curField === "origin" ? 1 : 2
@@ -65,6 +67,11 @@ exports.scraperMain = async(page, input) => {
 
       console.log("  Closing dialog...")
       await field.click()
+
+      if (curField === "origin")
+        nearbyOriginAirports = await page.evaluate(rowEl => rowEl.value, field)
+      else if (curField === "destination")
+        nearbyDestinationAirports = await page.evaluate(rowEl => rowEl.value, field)
     }
   }
 
@@ -163,7 +170,7 @@ exports.scraperMain = async(page, input) => {
   }
 
   console.log("Done.")
-  return {searchResults: results, warnings}
+  return {searchResults: results, warnings, nearbyOriginAirports: nearbyOriginAirports.split(", "), nearbyDestinationAirports: nearbyDestinationAirports.split(", ")}
 }
 
 /** after you've already hovered over the bar, retrieve the details from the flight

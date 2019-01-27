@@ -20,7 +20,8 @@
     "searchesAirlines": ["B6"]
   },
   "southwest": {
-    "searchesAirlines": ["WN"]
+    "searchesAirlines": [],
+    "alwaysForAirports": ["ALB", "ABQ", "AMA", "AUA", "ATL", "AUS", "BWI", "BZE", "BHM", "BOI", "BOS", "MHT", "PVD", "BOS", "BUF", "BUR", "SJD", "CUN", "CHS", "CLT", "MDW", "CVG", "CLE", "CMH", "CRP", "DAL", "DEN", "DSM", "DTW", "ELP", "FLL", "RSW", "GCM", "GRR", "GSP", "HRL", "BDL", "HAV", "HOU", "IND", "JAX", "MCI", "LAS", "LIR", "LIT", "LGB", "ISP", "BUR", "LGB", "LAX", "ONT", "SNA", "LAX", "SDF", "LBB", "MHT", "MEM", "MEX", "FLL", "MAF", "MKE", "MSP", "MBJ", "BNA", "NAS", "MSY", "LGA", "ISP", "LGA", "EWR", "EWR", "ORF", "ECP", "PNS", "OAK", "OKC", "OMA", "ONT", "SNA", "MCO", "ECP", "PNS", "PHL", "PHX", "PIT", "PWM", "PDX", "PVD", "PLS", "PVR", "PUJ", "RDU", "RNO", "RIC", "ROC", "SMF", "SLC", "SAT", "SAN", "OAK", "SFO", "SJC", "SFO", "SJC", "SJO", "SJU", "SEA", "GEG", "STL", "TPA", "TUS", "TUL", "IAD", "DCA", "BWI", "IAD", "DCA", "PBI", "ICT"]
   },
   "united": {
     "searchesAirlines": ["UA", "AC", "LH"],

@@ -43,6 +43,11 @@ exports.scraperMain = async(page, input) => {
   const response = await page.waitForResponse("https://www.southwest.com/api/air-booking/v1/air-booking/page/air/booking/shopping", {timeout: 90000})
   const raw = await response.json()
 
+  if (raw.notifications && raw.notifications.formErrors && raw.notifications.formErrors[0] && raw.notifications.formErrors[0].code === "ERROR__NO_ROUTES_EXIST") {
+    console.log("No routes exist on this day")
+    return {searchResults: []}
+  }
+
   const rawResults = raw.data.searchResults.airProducts[0].details
   const flights = []
   for (const result of rawResults) {

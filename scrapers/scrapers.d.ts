@@ -79,7 +79,9 @@ interface ScraperResult {
   consoleLog: Array<LogItem>
   screenshot: string
   scraperResult?: {
-    searchResults: Array<SearchResult>
+    searchResults: Array<SearchResult>,
+    nearbyOriginAirports?: Array<string>,
+    nearbyDestinationAirports?: Array<string>
   }
   error?: Error
   hashCheck?: string

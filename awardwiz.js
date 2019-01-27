@@ -193,6 +193,7 @@ export default class AwardWiz {
       this.scraperResults[scraperName] = result.scraperResult.searchResults
       this.addScraperResultsToGrid(scraperName)
     }
+    return result
   }
 
   async search() {
@@ -212,11 +213,8 @@ export default class AwardWiz {
       date: this.config.date
     }
 
-    console.log("Searching ita/southwest to find flights and airlines...")
-    await Promise.all([
-      this.runScraperAndAddToGrid("ita", {...query, originNearby: this.config.originNearby.toString(), destinationNearby: this.config.destinationNearby.toString()}, statusElement)
-      //this.runScraperAndAddToGrid("southwest", query, statusElement)
-    ])
+    console.log("Searching ita to find flights and airlines...")
+    const itaResults = await this.runScraperAndAddToGrid("ita", {...query, originNearby: this.config.originNearby.toString(), destinationNearby: this.config.destinationNearby.toString()}, statusElement)
     this.gridView.grid.api.hideOverlay()
 
     // Convert the airline codes to all the scrapers which support those airlines and do
@@ -226,7 +224,26 @@ export default class AwardWiz {
       for (const checkScraperName of Object.keys(this.config.scrapers))
         if (this.config.scrapers[checkScraperName].searchesAllAirlines || this.config.scrapers[checkScraperName].searchesAirlines.some((/** @type {string} */ checkCode) => checkCode === (row.flightNo || "").substr(0, 2)))
           scrapersAndOrigDest.push(`${checkScraperName}|${row.origin}|${row.destination}`)
-    const uniqueScrapersAndOrigDest = [...new Set(scrapersAndOrigDest)]
+
+    // Some airlines will always get searched depending on if we're considering airports they serve
+    // const searchingAirports = [this.config.origin, this.config.destination]
+    const origins = [this.config.origin, ...((itaResults.scraperResult || {nearbyOriginAirports: []}).nearbyOriginAirports || [])]
+    const destinations = [this.config.destination, ...((itaResults.scraperResult || {nearbyDestinationAirports: []}).nearbyDestinationAirports || [])]
+    for (const checkScraperName of Object.keys(this.config.scrapers)) {
+      if (this.config.scrapers[checkScraperName].alwaysForAirports) {
+        /** @type {Array<string>} */
+        const alwaysForAirports = this.config.scrapers[checkScraperName].alwaysForAirports || []
+
+        const matchedOrigins = origins.filter(origin => alwaysForAirports.some(alwaysForAirport => origin === alwaysForAirport))
+        const matchedDestinations = destinations.filter(destination => alwaysForAirports.some(alwaysForAirport => destination === alwaysForAirport))
+
+        for (const origin of matchedOrigins)
+          for (const destination of matchedDestinations)
+            scrapersAndOrigDest.push(`${checkScraperName}|${origin}|${destination}`)
+      }
+    }
+
+    const uniqueScrapersAndOrigDest = [...new Set(scrapersAndOrigDest)].sort()
 
     if (uniqueScrapersAndOrigDest.length > 0) {
       console.log("Starting search...")

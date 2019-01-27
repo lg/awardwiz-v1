@@ -6,13 +6,15 @@ const process = require("process")
 const main = async() => {
   console.log("Starting")
   const result = await index.debugEntry({
-    scraper: "ita",
+    scraper: "southwest",
     params: {
-      origin: "SFO",
-      destination: "LAS",
-      date: "2019-01-20",
+      origin: "SJC",
+      destination: "ISP",
+      date: "2019-01-28",
       username: process.env.AEROPLAN_USERNAME || "",
-      password: process.env.AEROPLAN_PASSWORD || ""
+      password: process.env.AEROPLAN_PASSWORD || "",
+      originNearby: "true",
+      destinationNearby: "true"
     }
   })
   console.log("Done")

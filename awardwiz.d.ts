@@ -14,7 +14,8 @@ interface AwardWizConfig {
 
   scrapers: {
     [name: string]: {
-      searchesAirlines: string[]
+      searchesAirlines?: string[]
+      alwaysForAirports?: string[]
       useProxy?: boolean
       extraParams?: {
         [name: string]: {
