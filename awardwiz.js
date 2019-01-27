@@ -61,7 +61,10 @@ export default class AwardWiz {
     for (const key of Object.keys(settings)) {
       const el = /** @type {HTMLInputElement} */ (document.getElementById(key))
       if (el) {
-        el.value = settings[key]
+        if (el.type === "text")
+          el.value = settings[key]
+        else if (el.type === "checkbox")
+          el.checked = settings[key]
         const evt = document.createEvent("HTMLEvents")
         evt.initEvent("change", false, true)
         el.dispatchEvent(evt)
@@ -81,8 +84,11 @@ export default class AwardWiz {
 
       functionName: localStorage.getItem("functionName") || "awardwiz",
       proxyUrl: localStorage.getItem("proxyUrl") || "",
+
       origin: localStorage.getItem("origin") || "",
+      originNearby: localStorage.getItem("originNearby") === null ? true : localStorage.getItem("originNearby") === "true",
       destination: localStorage.getItem("destination") || "",
+      destinationNearby: localStorage.getItem("destinationNearby") === null ? true : localStorage.getItem("destinationNearby") === "true",
       date: localStorage.getItem("date") || "",
 
       // The scrapers can change a lot, so we maintain the list in a json
@@ -123,10 +129,17 @@ export default class AwardWiz {
       if (!element)
         continue
 
-      element.value = config[configToSave]
+      if (element.type === "text")
+        element.value = config[configToSave]
+      else if (element.type === "checkbox")
+        element.checked = config[configToSave]
+
       element.addEventListener("change", () => {
-        config[element.id] = element.value
-        localStorage.setItem(element.id, config[element.id])
+        if (element.type === "text")
+          config[element.id] = element.value
+        else if (element.type === "checkbox")
+          config[element.id] = element.checked
+        localStorage.setItem(element.id, config[element.id].toString())
       })
     }
 
@@ -285,7 +298,7 @@ export default class AwardWiz {
 
     console.log("Searching ita/southwest to find flights and airlines...")
     await Promise.all([
-      this.runScraperAndAddToGrid("ita", query, statusElement)
+      this.runScraperAndAddToGrid("ita", {...query, originNearby: this.config.originNearby.toString(), destinationNearby: this.config.destinationNearby.toString()}, statusElement)
       //this.runScraperAndAddToGrid("southwest", query, statusElement)
     ])
     this.gridView.grid.api.hideOverlay()

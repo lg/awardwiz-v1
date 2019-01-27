@@ -46,24 +46,26 @@ exports.scraperMain = async(page, input) => {
     console.log("  Airport found, clicking element...")
     await elements[0].click()
 
-    console.log("  Clicking nearby...")
-    const nearbyLink = await page.waitForXPath(`(//a[text()='Nearby' and not(ancestor::div[contains(@style,'display: none')])])[${oneIndex}]`, {timeout: 90000})
-    await nearbyLink.click()
+    if ((curField === "origin" && input.originNearby === "true") || (curField === "destination" && input.destinationNearby === "true")) {
+      console.log("  Clicking nearby...")
+      const nearbyLink = await page.waitForXPath(`(//a[text()='Nearby' and not(ancestor::div[contains(@style,'display: none')])])[${oneIndex}]`, {timeout: 90000})
+      await nearbyLink.click()
 
-    console.log("  Waiting for results...")
-    await page.waitForResponse(response => (response.url() === "https://matrix.itasoftware.com/geosearch") && JSON.parse(response.request().postData() || "").method === "findAirportsNearCoords", {timeout: 90000})
+      console.log("  Waiting for results...")
+      await page.waitForResponse(response => (response.url() === "https://matrix.itasoftware.com/geosearch") && JSON.parse(response.request().postData() || "").method === "findAirportsNearCoords", {timeout: 90000})
 
-    console.log("  Switching to 50mi...")
-    await page.select(".popupContent select", "50")
+      console.log("  Switching to 50mi...")
+      await page.select(".popupContent select", "50")
 
-    console.log("  Waiting for results again...")
-    await page.waitForResponse(response => (response.url() === "https://matrix.itasoftware.com/geosearch") && JSON.parse(response.request().postData() || "").method === "findAirportsNearCoords", {timeout: 90000})
+      console.log("  Waiting for results again...")
+      await page.waitForResponse(response => (response.url() === "https://matrix.itasoftware.com/geosearch") && JSON.parse(response.request().postData() || "").method === "findAirportsNearCoords", {timeout: 90000})
 
-    console.log("  Selecting all...")
-    await (await page.waitForXPath("//label[.='Select all']/../input")).click()
+      console.log("  Selecting all...")
+      await (await page.waitForXPath("//label[.='Select all']/../input")).click()
 
-    console.log("  Closing dialog...")
-    await field.click()
+      console.log("  Closing dialog...")
+      await field.click()
+    }
   }
 
   console.log("Setting no connections...")

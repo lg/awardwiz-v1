@@ -7,7 +7,9 @@ interface AwardWizConfig {
   functionName: string
   proxyUrl: string
   origin: string
+  originNearby: boolean
   destination: string
+  destinationNearby: boolean
   date: string
 
   scrapers: {
