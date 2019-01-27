@@ -1,3 +1,4 @@
+import MiniORM from "./miniorm.js"
 import AwardWizGrid from "./awardwiz-grid.js"
 import AWSProvider from "./cloud-providers/aws-provider.js"
 
@@ -5,7 +6,18 @@ export default class AwardWiz {
   constructor() {
     // @ts-ignore because the type checker isn't very good at async constructors
     return (async() => {
-      this.config = await AwardWiz.loadConfigAndUpdateDocument()
+      /** @type {AwardWizConfig} */
+      this.config = {
+        awsAccessKey: "", awsSecretAccessKey: "", awsRegionZone: "us-west-1a", awsLambdaRoleArn: "",
+        functionName: "awardwiz", proxyUrl: "",
+        origin: "", originNearby: true, destination: "", destinationNearby: true, date: "",
+
+        // The scrapers can change a lot, so we maintain the list in a json
+        scrapers: await fetch("scrapers.json").then(result => result.json())
+      }
+      this.miniorm = new MiniORM(this.config)
+      this.miniorm.addAndAttachDynamicSettingsToDOM(this.config.scrapers, "#scraperExtraParams")
+      this.miniorm.attachSettingsToDOM()
 
       this.cloud = new AWSProvider({
         files: ["index.js", "package.json", ...Object.keys(this.config.scrapers).map(scraperName => `${scraperName}.js`)],
@@ -43,107 +55,11 @@ export default class AwardWiz {
   }
 
   exportSettings() {
-    const settingsString = btoa(JSON.stringify(this.config))
-    console.log(`Your settings string is: ${settingsString}`)
-    console.log("Please remember not to spread this to friends, personal credentials are contained in these strings!")
+    this.miniorm.exportSettings()
   }
 
   importSettings() {
-    const settingsString = window.prompt("Paste the settings string from someone here. Please remember not to spread this to friends, personal credentials are contained in these strings!") || ""  // eslint-disable-line no-alert
-    const settings = JSON.parse(atob(settingsString))
-
-    // Settings for scrapers are stored in the scrapers object, but HTML elements are globally namespaced
-    for (const scraperName of Object.keys(settings.scrapers))
-      if (settings.scrapers[scraperName].extraParams)
-        for (const extraParamName of Object.keys(settings.scrapers[scraperName].extraParams))
-          settings[`${scraperName}${extraParamName}`] = settings.scrapers[scraperName].extraParams[extraParamName].value
-
-    for (const key of Object.keys(settings)) {
-      const el = /** @type {HTMLInputElement} */ (document.getElementById(key))
-      if (el) {
-        if (el.type === "text")
-          el.value = settings[key]
-        else if (el.type === "checkbox")
-          el.checked = settings[key]
-        const evt = document.createEvent("HTMLEvents")
-        evt.initEvent("change", false, true)
-        el.dispatchEvent(evt)
-      }
-    }
-
-    window.location.reload()
-  }
-
-  static async loadConfigAndUpdateDocument() {
-    /** @type {AwardWizConfig} */
-    const config = {
-      awsAccessKey: localStorage.getItem("awsAccessKey") || "",
-      awsSecretAccessKey: localStorage.getItem("awsSecretAccessKey") || "",
-      awsRegionZone: localStorage.getItem("awsRegionZone") || "us-west-1a",
-      awsLambdaRoleArn: localStorage.getItem("awsLambdaRoleArn") || "",
-
-      functionName: localStorage.getItem("functionName") || "awardwiz",
-      proxyUrl: localStorage.getItem("proxyUrl") || "",
-
-      origin: localStorage.getItem("origin") || "",
-      originNearby: localStorage.getItem("originNearby") === null ? true : localStorage.getItem("originNearby") === "true",
-      destination: localStorage.getItem("destination") || "",
-      destinationNearby: localStorage.getItem("destinationNearby") === null ? true : localStorage.getItem("destinationNearby") === "true",
-      date: localStorage.getItem("date") || "",
-
-      // The scrapers can change a lot, so we maintain the list in a json
-      scrapers: await fetch("scrapers.json").then(result => result.json())
-    }
-
-    const extraParamsDiv = document.querySelector("#scraperExtraParams")
-    if (!extraParamsDiv)
-      throw new Error("Missing extra params div")
-
-    // Scrapers can have custom parameters
-    Object.keys(config.scrapers).forEach((/** @type {string} */ scraperName) => {
-      if (config.scrapers[scraperName].extraParams) {
-        Object.keys(config.scrapers[scraperName].extraParams).forEach((/** @type {string} */ paramName) => {
-          const extraParamKey = `${scraperName}${paramName}`
-          config.scrapers[scraperName].extraParams[paramName].value = localStorage.getItem(extraParamKey) || ""
-
-          const extraParamLabel = document.createElement("label")
-          extraParamLabel.htmlFor = extraParamKey
-          extraParamLabel.innerText = `${scraperName} ${paramName}: `
-          const extraParamInput = document.createElement("input")
-          extraParamInput.type = "text"
-          extraParamInput.id = extraParamKey
-          extraParamInput.value = config.scrapers[scraperName].extraParams[paramName].value
-          extraParamInput.addEventListener("change", () => {
-            config.scrapers[scraperName].extraParams[paramName].value = extraParamInput.value
-            localStorage.setItem(extraParamKey, extraParamInput.value)
-          })
-          const extraParamBR = document.createElement("br")
-
-          extraParamsDiv.append(extraParamLabel, extraParamInput, extraParamBR)
-        })
-      }
-    })
-
-    for (const configToSave of Object.getOwnPropertyNames(config)) {
-      const element = /** @type {HTMLInputElement?} */ (document.getElementById(configToSave))
-      if (!element)
-        continue
-
-      if (element.type === "text")
-        element.value = config[configToSave]
-      else if (element.type === "checkbox")
-        element.checked = config[configToSave]
-
-      element.addEventListener("change", () => {
-        if (element.type === "text")
-          config[element.id] = element.value
-        else if (element.type === "checkbox")
-          config[element.id] = element.checked
-        localStorage.setItem(element.id, config[element.id].toString())
-      })
-    }
-
-    return config
+    this.miniorm.importSettings()
   }
 
   async prep() {
