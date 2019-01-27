@@ -182,7 +182,7 @@ const getFlightFromRow = async(page, input, rowElement, detailsElement, results)
     duration: await xPathInnerText(page, ".//table[2]/tbody[1]/tr[1]/td[2]/div[1]", detailsElement, "flight duration"),
     aircraft: await xPathInnerText(page, ".//table[2]/tbody[1]/tr[3]/td[2]/div[1]", detailsElement, "aircraft type used for flight"),
     airline: (await xPathInnerText(page, ".//div[1]", detailsElement, "airline name and flight number")).split(" flight ")[0],
-    flightNo: null,
+    flightNo: "??????",
     costs: {
       economy: {miles: null, cash: parseInt((await xPathInnerText(page, ".//div[1]/button[1]/span[2]", rowElement, "economy cash amount")).replace("$", ""), 10)},
       business: {miles: null, cash: null},

@@ -135,7 +135,7 @@ const standardizeResults = aeroplanTrip => {
     // Look if we already have this entry, and if so, switch to it
     let foundPrevResult = false
     for (const checkResult of results) {
-      if (checkResult.departureDateTime === result.departureDateTime && checkResult.arrivalDateTime === result.arrivalDateTime) {
+      if (checkResult.flightNo === result.flightNo) {
         foundPrevResult = true
         result = checkResult
         break

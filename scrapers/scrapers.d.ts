@@ -22,7 +22,7 @@ interface SearchResult {
   airline: string | null
 
   /** Flight number with airline code. Examples: AC 123, SQ 1 */
-  flightNo: string | null
+  flightNo: string
 
   /** Duration of the flight. Example: 5h 32m */
   duration: string | null
