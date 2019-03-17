@@ -205,6 +205,7 @@ export default class AwardWiz {
     this.gridView.grid.api.setRowData([])
 
     this.gridView.grid.api.showLoadingOverlay()
+    document.title = `AwardWiz - ${this.config.origin}→${this.config.destination}`
 
     /** @type {SearchQuery} */
     const query = {
