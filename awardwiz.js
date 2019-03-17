@@ -126,7 +126,7 @@ export default class AwardWiz {
       // arrival times being the same), combine them, though display the cheapest mileage fare first
       let foundRow = false
       for (const checkResultRow of this.resultRows) {
-        if (checkResultRow.flightNo === newFlight.flightNo) {
+        if (checkResultRow.departureDateTime === newFlight.departureDateTime && checkResultRow.arrivalDateTime === newFlight.arrivalDateTime) {
           foundRow = true
           checkResultRow.scrapersUsed[scraperName] = newFlight
 
