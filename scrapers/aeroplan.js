@@ -51,8 +51,7 @@ exports.scraperMain = async(page, input) => {
   await page.goto("https://www.aeroplan.com/en/use-your-miles/travel.html", {waitUntil: "networkidle0"})
 
   console.log("Selecting one-way...")
-  await waitAndClick("div[data-automation=round-trip-trip-type]")
-  await waitAndClick("div[data-value=One-way]")
+  await waitAndClick("input[value=One-way]")
 
   try {
     console.log("Setting origin...")
