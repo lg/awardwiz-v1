@@ -3,13 +3,29 @@
  * @param {SearchQuery} input
  */
 exports.scraperMain = async(page, input) => {
-  console.log("Getting United cookie...")
+  console.log("Going to search page...")
   await page.goto("https://www.united.com/ual/en/us/flight-search/book-a-flight")
 
-  console.log("Searching for flights...")
+  console.log("Selecting points...")
+  await page.click("label[for=RedeemMiles_rMiles]")
 
-  const maxConnectionsCode = 1  // only support non-stop flights for now. other valid codes: 3 (1 connection), 7 (2 connections)
-  await page.goto(`https://www.united.com/ual/en/us/flight-search/book-a-flight/results/awd?f=${input.origin}&t=${input.destination}&d=${input.date}&tt=1&at=1&sc=${maxConnectionsCode}&px=1&taxng=1&idx=1`)
+  console.log("Selecting one-way...")
+  await page.click("label[for=TripTypes_ow]")
+
+  console.log("Setting origin...")
+  await page.click("label[for=Trips_0__Origin]")
+  await page.keyboard.type(input.origin)
+
+  console.log("Setting destination...")
+  await page.click("label[for=Trips_0__Destination]")
+  await page.keyboard.type(input.destination)
+
+  console.log("Setting date...")
+  await page.click("label[for=Trips_0__DepartDate]")
+  await page.keyboard.type(input.date)
+
+  console.log("Searching...")
+  await page.click("#btn-search")
 
   console.log("Waiting for JSON results...")
   const response = await page.waitForResponse("https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/awd", {timeout: 90000})
