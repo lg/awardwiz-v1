@@ -112,7 +112,11 @@ export default class AwardWiz {
       <a href="data:image/jpeg;base64,${result.screenshot}" target="_blank">show screenshot</a>
       <a href="data:application/json;base64,${btoa(JSON.stringify(Object.assign(result, {screenshot: "[FILTERED OUT]"}), null, 2))}" target="_blank">show result</a>
       <a href="${result.awsLogURL}" target="_blank">show cloudwatch log</a>
+      <a id='retry' href="javascript:void(0)">retry</a>
       (right click to open)`
+
+    const retryLink = /** @type {HTMLDivElement} */ (statusDiv.querySelector("#retry"))
+    retryLink.addEventListener("click", () => this.searchUsingScraper(scraperName, searchQuery, statusElement))
 
     return result
   }
