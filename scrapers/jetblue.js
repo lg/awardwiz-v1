@@ -1,4 +1,7 @@
-// It appears OAK-LAS is a different page from SFO-BOS or SFO-LAS
+// It appears OAK-LAS is a different page from SFO-BOS or SFO-LAS (partners?)
+// NOTE May 31, 2019: looks like the date is misinterpreted on the URL,
+//   so we're going to pass an invalid one in and manually fix, in addition
+//   to selecting one-way.
 
 /**
  * @param {import("puppeteer").Page} page
@@ -6,10 +9,16 @@
  */
 exports.scraperMain = async(page, input) => {
   console.log("Going to search page with pre-filled fields...")
-  await page.goto(`https://book.jetblue.com/shop/search/#/book/from/${input.origin}/to/${input.destination}/depart/${input.date.substr(8, 2)}-${input.date.substr(5, 2)}-${input.date.substr(0, 4)}/return/false/pax/ADT-1/redemption/true/promo/false`, {waitUntil: "networkidle0"})
+  await page.goto(`https://book.jetblue.com/shop/search/#/book/from/${input.origin}/to/${input.destination}/depart/00-00-0000/return/false/pax/ADT-1/redemption/true/promo/false`)
+
+  console.log("Waiting for page to finish loading ajax...")
+  await page.waitForSelector("input[value='Find it']", {timeout: 90000})
+
+  console.log("Fixing date and one-way...")
+  await page.click("label[for=jbBookerItinOW]")
+  await page.type("#jbBookerCalendarDepart", `${input.date.substr(5, 2)}-${input.date.substr(8, 2)}-${input.date.substr(0, 4)}`)
 
   console.log("Starting search and waiting for results...")
-  await page.waitForSelector("input[value='Find it']", {timeout: 90000})
   await page.click("input[value='Find it']")
 
   let result = 0
@@ -22,7 +31,8 @@ exports.scraperMain = async(page, input) => {
         page.waitForXPath("//div[contains(text(),'Please enter valid ')]", {timeout: 90000}).then(() => 3),
         page.waitForXPath("//p[contains(text(),'Jetblue.com is temporarily unavailable')]", {timeout: 90000}).then(() => 4),
         page.waitForXPath("//div[contains(text(),\"Because you've selected today's date\")]", {timeout: 90000}).then(() => 5),
-        page.waitForXPath(`//div[@class='date' and contains(text(), '\t${parseInt(input.date.substr(8, 2), 10)} ')]/../div[contains(@class, 'notAvailText')]`, {timeout: 90000}).then(() => 6)
+        page.waitForXPath(`//div[@class='date' and contains(text(), '\t${parseInt(input.date.substr(8, 2), 10)} ')]/../div[contains(@class, 'notAvailText')]`, {timeout: 90000}).then(() => 6),
+        page.waitForXPath("//div[contains(text(), 'operates seasonally')]", {timeout: 90000}).then(() => 7)
       ])
     } catch (err) {   // necessary to deal with a puppeteer bug where closing the browser causes a race condition
       throw err
@@ -32,13 +42,14 @@ exports.scraperMain = async(page, input) => {
       console.log("No flights found")
       return {searchResults: []}
     } else if (result === 2) {
-      throw new Error("Alternate UI")
+      console.log("No flights found (possible cash-only partner flights)")
+      return {searchResults: []}
     } else if (result === 3) {
       console.log("One or more airports not supported")
       return {searchResults: []}
     } else if (result === 4) {
       throw new Error("Jetblue down")
-    } else if (result === 5) {
+    } else if (result === 5 || result === 7) {
       await page.click(".continue_button")
     }
   } while (result !== 0)
