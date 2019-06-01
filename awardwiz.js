@@ -116,7 +116,7 @@ export default class AwardWiz {
       (right click to open)`
 
     const retryLink = /** @type {HTMLDivElement} */ (statusDiv.querySelector("#retry"))
-    retryLink.addEventListener("click", () => this.searchUsingScraper(scraperName, searchQuery, statusElement))
+    retryLink.addEventListener("click", () => this.runScraperAndAddToGrid(scraperName, searchQuery, statusElement))
 
     return result
   }
