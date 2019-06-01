@@ -17,6 +17,7 @@ interface AwardWizConfig {
       searchesAirlines?: string[]
       alwaysForAirports?: string[]
       useProxy?: boolean
+      ignoreZeroResultsWarning?: boolean
       extraParams?: {
         [name: string]: {
           value?: string

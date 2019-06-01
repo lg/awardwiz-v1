@@ -105,6 +105,13 @@ export default class AwardWiz {
       result.scraperResult = {searchResults: []}
     }
 
+    // Scrapers should always return results since ita is saying there's a route served.
+    // Therefore, trigger a warning, unless they're supressed (for example when an airline
+    // like SouthWest isn't supported by ita)
+    let warningText = ""
+    if (result.scraperResult.searchResults.length === 0 && !this.config.scrapers[scraperName].ignoreZeroResultsWarning)
+      warningText = "WARNING: zero results!"
+
     // Individual status per scraper
     const statusLine = result.error ? `Error: ${result.error.name || result.error.message.substr(0, 50)}` : `${result.scraperResult.searchResults.length} result${result.scraperResult.searchResults.length === 1 ? "" : "s"}`
     statusDiv.innerHTML = `${scraperIdentifier} -
@@ -114,6 +121,8 @@ export default class AwardWiz {
       <a href="${result.awsLogURL}" target="_blank">show cloudwatch log</a>
       <a id='retry' href="javascript:void(0)">retry</a>
       (right click to open)`
+    if (warningText)
+      statusDiv.innerHTML += ` - ${warningText}`
 
     const retryLink = /** @type {HTMLDivElement} */ (statusDiv.querySelector("#retry"))
     retryLink.addEventListener("click", () => this.runScraperAndAddToGrid(scraperName, searchQuery, statusElement))
