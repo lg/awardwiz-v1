@@ -1,16 +1,21 @@
 {
   "aeroplan": {
-    "searchesAirlines": ["UA", "AC"],
+    "searchesAirlines": [
+      "AC", "JP", "A3", "CA", "AI", "NZ", "NH", "OZ", "OS", "AV", "SN", "CM", "OU", "MS", "ET", "BR", "HO", "LO", "LH", "SK", "ZH", "SQ", "SA", "LX", "TP", "TG", "TK", "UA"
+    ],
     "extraParams": {"username": {}, "password": {}}
   },
   "alaska": {
-    "searchesAirlines": ["AS", "AA"]
+    "searchesAirlines": ["AS", "EI", "AA", "BA", "CX", "DE", "LY", "EK", "FJ", "AY", "AU", "FI", "JL", "KE", "LA", "KS", "QF", "7H", "SQ"]
   },
   "chase": {
     "searchesAllAirlines": true
   },
   "delta": {
-    "searchesAirlines": ["DL", "WS"]
+    "searchesAirlines": [
+      "SU", "AR", "AM", "AF", "AZ", "CI", "MU", "CZ", "GA", "G3", "HA", "KE", "KL", "ME", "AE", "FM", "SV", "VN", "RO", "VA", "VS", "MF",
+      "DL", "WS"
+    ]
   },
   "ita": {
     "searchesAirlines": [],
@@ -18,7 +23,7 @@
     "ignoreZeroResultsWarning": true
   },
   "jetblue": {
-    "searchesAirlines": ["B6"]
+    "searchesAirlines": ["B6", "HA"]
   },
   "southwest": {
     "searchesAirlines": [],
@@ -26,6 +31,9 @@
     "ignoreZeroResultsWarning": true
   },
   "united": {
-    "searchesAirlines": ["UA", "AC", "LH"]
+    "searchesAirlines": [
+      "AC", "JP", "A3", "CA", "AI", "NZ", "NH", "OZ", "OS", "AV", "SN", "CM", "OU", "MS", "ET", "BR", "HO", "LO", "LH", "SK", "ZH", "SQ", "SA", "LX", "TP", "TG", "TK", "UA",
+      "EI", "VW", "EN", "AD", "4B", "9K", "WK", "EW", "HA", "HO", "OA", "3M"
+    ]
   }
 }
