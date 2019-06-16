@@ -51,7 +51,7 @@ exports.scraperMain = async(page, input) => {
     try {     // eslint-disable-line no-useless-catch
       result = await Promise.race([
         page.waitForSelector("#sector_1", {timeout: 60000}).then(() => 0),
-        page.waitForSelector("#stopOverForm").then(() => 1),
+        page.waitForSelector("#stopOverForm", {timeout: 60000}).then(() => 1),
         page.waitForSelector("#captcha_form").then(() => 2)
       ])
     } catch (err) {   // necessary to deal with a puppeteer bug where closing the browser causes a race condition
@@ -101,10 +101,16 @@ exports.scraperMain = async(page, input) => {
       for (const cabinCol of await row.$$("div.seats-available")) {
         await page.evaluate(el => el.scrollIntoView(), cabinCol)
         await cabinCol.click()
-        await page.waitForSelector(".totalPriceAviosTxt", {timeout: 5000})
 
+        await page.waitForSelector(".totalPriceAviosTxt")
         const text = await innerText(page, ".totalPriceAviosTxt")
         await page.$eval(".totalPriceAviosTxt", el => el.remove())    // gets recreated after clicking a cabin
+
+        // wait for the bottom bar thing to animate
+        await page.waitForXPath("//div[@class='shopping-basket-container' and not(contains(@style, '.')) and contains(@style, 'bottom: 0px')]")
+        await page.click(".journey-summary")
+        await page.waitForXPath("//div[@class='shopping-basket-container' and not(contains(@style, '.')) and not(contains(@style, 'bottom: 0px'))]")
+        await page.waitFor(1000)  // not sure why this is necessary
 
         const textParts = text.split(" Avios + $")
         const cashMiles = {miles: parseInt(textParts[0], 10), cash: parseFloat(textParts[1])}
