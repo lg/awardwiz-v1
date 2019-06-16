@@ -1,6 +1,7 @@
 {
   "aeroplan": {
     "searchesAirlines": [
+      "star alliance",
       "AC", "JP", "A3", "CA", "AI", "NZ", "NH", "OZ", "OS", "AV", "SN", "CM", "OU", "MS", "ET", "BR", "HO", "LO", "LH", "SK", "ZH", "SQ", "SA", "LX", "TP", "TG", "TK", "UA"
     ],
     "extraParams": {"username": {}, "password": {}}
@@ -8,30 +9,38 @@
   "alaska": {
     "searchesAirlines": ["AS", "EI", "AA", "BA", "CX", "DE", "LY", "EK", "FJ", "AY", "AU", "FI", "JL", "KE", "LA", "KS", "QF", "7H", "SQ"]
   },
+  "british": {
+    "searchesAirlines": [
+      "oneworld",
+      "AA", "BA", "CX", "AY", "IB", "JL", "LA", "MH", "QF", "QR", "RJ", "S7", "UL",
+      "EI", "AL"
+    ],
+    "extraParams": {"username": {}, "password": {}}
+  },
   "chase": {
     "searchesAllAirlines": true
   },
   "delta": {
     "searchesAirlines": [
-      "SU", "AR", "AM", "AF", "AZ", "CI", "MU", "CZ", "GA", "G3", "HA", "KE", "KL", "ME", "AE", "FM", "SV", "VN", "RO", "VA", "VS", "MF",
-      "DL", "WS"
+      "skyteam",
+      "DL", "SU", "AR", "AM", "AF", "AZ", "CI", "MU", "CZ", "GA", "G3", "HA", "KE", "KL", "ME", "AE", "FM", "SV", "VN", "RO", "VA", "VS", "MF",
+      "WS"
     ]
   },
   "ita": {
     "searchesAirlines": [],
-    "useProxy": true,
-    "ignoreZeroResultsWarning": true
+    "useProxy": true
   },
   "jetblue": {
     "searchesAirlines": ["B6", "HA"]
   },
   "southwest": {
     "searchesAirlines": [],
-    "alwaysForAirports": ["ALB", "ABQ", "AMA", "AUA", "ATL", "AUS", "BWI", "BZE", "BHM", "BOI", "BOS", "MHT", "PVD", "BOS", "BUF", "BUR", "SJD", "CUN", "CHS", "CLT", "MDW", "CVG", "CLE", "CMH", "CRP", "DAL", "DEN", "DSM", "DTW", "ELP", "FLL", "RSW", "GCM", "GRR", "GSP", "HRL", "BDL", "HAV", "HOU", "IND", "JAX", "MCI", "LAS", "LIR", "LIT", "LGB", "ISP", "BUR", "LGB", "LAX", "ONT", "SNA", "LAX", "SDF", "LBB", "MHT", "MEM", "MEX", "FLL", "MAF", "MKE", "MSP", "MBJ", "BNA", "NAS", "MSY", "LGA", "ISP", "LGA", "EWR", "EWR", "ORF", "ECP", "PNS", "OAK", "OKC", "OMA", "ONT", "SNA", "MCO", "ECP", "PNS", "PHL", "PHX", "PIT", "PWM", "PDX", "PVD", "PLS", "PVR", "PUJ", "RDU", "RNO", "RIC", "ROC", "SMF", "SLC", "SAT", "SAN", "OAK", "SFO", "SJC", "SFO", "SJC", "SJO", "SJU", "SEA", "GEG", "STL", "TPA", "TUS", "TUL", "IAD", "DCA", "BWI", "IAD", "DCA", "PBI", "ICT"],
-    "ignoreZeroResultsWarning": true
+    "alwaysForAirports": ["ALB", "ABQ", "AMA", "AUA", "ATL", "AUS", "BWI", "BZE", "BHM", "BOI", "BOS", "MHT", "PVD", "BOS", "BUF", "BUR", "SJD", "CUN", "CHS", "CLT", "MDW", "CVG", "CLE", "CMH", "CRP", "DAL", "DEN", "DSM", "DTW", "ELP", "FLL", "RSW", "GCM", "GRR", "GSP", "HRL", "BDL", "HAV", "HOU", "IND", "JAX", "MCI", "LAS", "LIR", "LIT", "LGB", "ISP", "BUR", "LGB", "LAX", "ONT", "SNA", "LAX", "SDF", "LBB", "MHT", "MEM", "MEX", "FLL", "MAF", "MKE", "MSP", "MBJ", "BNA", "NAS", "MSY", "LGA", "ISP", "LGA", "EWR", "EWR", "ORF", "ECP", "PNS", "OAK", "OKC", "OMA", "ONT", "SNA", "MCO", "ECP", "PNS", "PHL", "PHX", "PIT", "PWM", "PDX", "PVD", "PLS", "PVR", "PUJ", "RDU", "RNO", "RIC", "ROC", "SMF", "SLC", "SAT", "SAN", "OAK", "SFO", "SJC", "SFO", "SJC", "SJO", "SJU", "SEA", "GEG", "STL", "TPA", "TUS", "TUL", "IAD", "DCA", "BWI", "IAD", "DCA", "PBI", "ICT"]
   },
   "united": {
     "searchesAirlines": [
+      "star alliance",
       "AC", "JP", "A3", "CA", "AI", "NZ", "NH", "OZ", "OS", "AV", "SN", "CM", "OU", "MS", "ET", "BR", "HO", "LO", "LH", "SK", "ZH", "SQ", "SA", "LX", "TP", "TG", "TK", "UA",
       "EI", "VW", "EN", "AD", "4B", "9K", "WK", "EW", "HA", "HO", "OA", "3M"
     ]
