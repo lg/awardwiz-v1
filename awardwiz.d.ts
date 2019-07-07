@@ -24,6 +24,15 @@ interface AwardWizConfig {
         }
       }
     }
+  }[],
+  firstRegions: {
+    region1: string
+    region2: string
+    flights: {
+      airline: string
+      airport1: string
+      airport2: string
+    }[]
   }[]
 }
 

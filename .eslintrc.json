@@ -58,6 +58,7 @@
     "max-len": "off",                     // long lines are sometimes cleaner (note, can compromise here)
     "no-console": "off",                  // ideally this isn't on, but i need a better logger
     "max-statements": "off",              // too restrictive otherwise
+    "max-lines": "off",                   // still prototyping
     "max-lines-per-function": "off",      // again, overly restrictive
     "no-magic-numbers": "off",            // needed for sanity
     "class-methods-use-this": "off",      // can't be in the middle of writing code with this on

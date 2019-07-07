@@ -14,8 +14,16 @@ export default class AwardWiz {
         checkChase: true,
 
         // The scrapers can change a lot, so we maintain the list in a json
-        scrapers: await fetch("scrapers.json").then(result => result.json())
+        scrapers: await fetch("scrapers.json").then(result => result.json()),
+        firstRegions: await fetch("first.json").then(result => result.json())
       }
+
+      const regionSearchEl = /** @type {HTMLSelectElement} */ (document.querySelector("#regionSearch"))
+      this.config.firstRegions.forEach((route, index) => {
+        regionSearchEl.innerHTML += `<option value='route${index}-ab'>${route.region1}→${route.region2}</option>`
+        regionSearchEl.innerHTML += `<option value='route${index}-ba'>${route.region2}→${route.region1}</option>`
+      })
+
       this.miniorm = new MiniORM(this.config)
       this.miniorm.addAndAttachDynamicSettingsToDOM(this.config.scrapers, "#scraperExtraParams")
       this.miniorm.attachSettingsToDOM()
@@ -202,15 +210,8 @@ export default class AwardWiz {
   }
 
   async search() {
-    // Reset the previous results if any
     const statusElement = /** @type {HTMLDivElement} */ (document.getElementById("searchStatus"))
-    statusElement.innerHTML = ""
-    this.resultRows = []
-    this.scraperResults = {}
-    this.gridView.grid.api.setRowData([])
-
-    this.gridView.grid.api.showLoadingOverlay()
-    document.title = `AwardWiz - ${this.config.origin}→${this.config.destination}`
+    this.startNewSearch(`${this.config.origin}→${this.config.destination}`, statusElement)
 
     /** @type {SearchQuery} */
     const query = {
@@ -250,19 +251,71 @@ export default class AwardWiz {
       }
     }
 
-    const uniqueScrapersAndOrigDest = [...new Set(scrapersAndOrigDest)].sort()
+    await this.runSearch(scrapersAndOrigDest, statusElement)
 
+    console.log("Completed search.")
+    this.gridView.grid.api.hideOverlay()
+  }
+
+  /**
+   * @param {string} title
+   * @param {HTMLDivElement} statusElement
+   */
+  async startNewSearch(title, statusElement) {
+    // Reset the previous results if any
+    statusElement.innerHTML = ""
+    this.resultRows = []
+    this.scraperResults = {}
+    this.gridView.grid.api.setRowData([])
+
+    this.gridView.grid.api.showLoadingOverlay()
+    document.title = `AwardWiz - ${title}`
+  }
+
+  async searchRegion() {
+    const statusElement = /** @type {HTMLDivElement} */ (document.getElementById("searchStatus"))
+
+    const regionSearch = /** @type {HTMLSelectElement} */ (document.querySelector("#regionSearch")).value
+    let searchRoutes = /** @type {AwardWizConfig["firstRegions"][0]["flights"]} */ ([])
+    this.config.firstRegions.forEach((route, index) => {
+      if (regionSearch === `route${index}-ab`) {
+        searchRoutes = route.flights
+        this.startNewSearch(`${route.region1}→${route.region2}`, statusElement)
+      } else if (regionSearch === `route${index}-ba`) {
+        searchRoutes = route.flights.map(curRoute => {
+          return {airline: curRoute.airline, airport1: curRoute.airport2, airport2: curRoute.airport1}
+        })
+        this.startNewSearch(`${route.region2}→${route.region1}`, statusElement)
+      }
+    })
+
+    const scrapersAndOrigDest = []
+    for (const firstFlight of searchRoutes) {
+      for (const checkScraperName of Object.keys(this.config.scrapers))
+        if (this.config.scrapers[checkScraperName].searchesAirlines && this.config.scrapers[checkScraperName].searchesAirlines.some((/** @type {string} */ checkCode) => checkCode === firstFlight.airline))
+          scrapersAndOrigDest.push(`${checkScraperName}|${firstFlight.airport1}|${firstFlight.airport2}`)
+    }
+
+    await this.runSearch(scrapersAndOrigDest, statusElement)
+
+    console.log("Completed search.")
+    this.gridView.grid.api.hideOverlay()
+  }
+
+  /**
+   * @param {string[]} scrapersAndOrigDest
+   * @param {HTMLElement} statusElement
+   */
+  async runSearch(scrapersAndOrigDest, statusElement) {
+    const uniqueScrapersAndOrigDest = [...new Set(scrapersAndOrigDest)].sort()
     if (uniqueScrapersAndOrigDest.length > 0) {
       console.log("Starting search...")
       await Promise.all(uniqueScrapersAndOrigDest.map(scaperAndOrigDest => {
         const [scraperName, origin, destination] = scaperAndOrigDest.split("|")
-        const properOrigDestQuery = {...query, origin, destination}
+        const properOrigDestQuery = {origin, destination, date: this.config.date}
         return this.runScraperAndAddToGrid(scraperName, properOrigDestQuery, statusElement)
       }))
     }
-
-    console.log("Completed search.")
-    this.gridView.grid.api.hideOverlay()
   }
 
   /**

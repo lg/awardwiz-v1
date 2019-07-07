@@ -1,0 +1,26 @@
+[
+  {"region1": "US West", "region2": "Asia", "flights": [
+    {"airline": "JL", "airport1": "SFO", "airport2": "HND"},
+    {"airline": "NH", "airport1": "SFO", "airport2": "NRT"},
+    {"airline": "KE", "airport1": "SFO", "airport2": "ICN"},
+    {"airline": "SQ", "airport1": "SFO", "airport2": "HKG"},
+    {"airline": "CX", "airport1": "SFO", "airport2": "HKG"},
+    {"airline": "CA", "airport1": "SFO", "airport2": "PEK"},
+
+    {"airline": "AA", "airport1": "LAX", "airport2": "HND"},
+    {"airline": "JL", "airport1": "LAX", "airport2": "NRT"},
+    {"airline": "SQ", "airport1": "LAX", "airport2": "NRT"},
+    {"airline": "NH", "airport1": "LAX", "airport2": "HND"},
+    {"airline": "NH", "airport1": "LAX", "airport2": "NRT"},
+    {"airline": "KE", "airport1": "LAX", "airport2": "ICN"},
+    {"airline": "OZ", "airport1": "LAX", "airport2": "ICN"},
+    {"airline": "CA", "airport1": "LAX", "airport2": "PEK"},
+    {"airline": "CX", "airport1": "LAX", "airport2": "HKG"},
+    {"airline": "AA", "airport1": "LAX", "airport2": "HKG"},
+    {"airline": "CZ", "airport1": "LAX", "airport2": "CAN"},
+
+    {"airline": "KE", "airport1": "SEA", "airport2": "ICN"},
+    {"airline": "CX", "airport1": "YVR", "airport2": "HKG"},
+    {"airline": "KE", "airport1": "LAS", "airport2": "ICN"}
+  ]}
+]
