@@ -2,6 +2,8 @@ import MiniORM from "./miniorm.js"
 import AwardWizGrid from "./awardwiz-grid.js"
 import AWSProvider from "./cloud-providers/aws-provider.js"
 
+/* global JSON5 */
+
 export default class AwardWiz {
   constructor() {
     // @ts-ignore because the type checker isn't very good at async constructors
@@ -14,8 +16,10 @@ export default class AwardWiz {
         checkChase: true,
 
         // The scrapers can change a lot, so we maintain the list in a json
-        scrapers: await fetch("scrapers.json").then(result => result.json()),
-        firstRegions: await fetch("first.json").then(result => result.json())
+        // @ts-ignore because the import isn't working for JSON5
+        scrapers: await fetch("scrapers.json").then(result => result.text()).then(result => JSON5.parse(result)),
+        // @ts-ignore because the import isn't working for JSON5
+        firstRegions: await fetch("first.json").then(result => result.text()).then(result => JSON5.parse(result))
       }
 
       const regionSearchEl = /** @type {HTMLSelectElement} */ (document.querySelector("#regionSearch"))
