@@ -11,6 +11,7 @@ export default class AwardWiz {
         awsAccessKey: "", awsSecretAccessKey: "", awsRegionZone: "us-west-1a", awsLambdaRoleArn: "",
         functionName: "awardwiz", proxyUrl: "",
         origin: "", originNearby: true, destination: "", destinationNearby: true, date: "",
+        checkChase: true,
 
         // The scrapers can change a lot, so we maintain the list in a json
         scrapers: await fetch("scrapers.json").then(result => result.json())
@@ -223,12 +224,13 @@ export default class AwardWiz {
     this.gridView.grid.api.hideOverlay()
 
     // Convert the airline codes to all the scrapers which support those airlines and do
-    // it per origin->destination mapping from ita
+    // it per origin->destination mapping from ita. Also skip Chase if requested.
     const scrapersAndOrigDest = []
     for (const row of this.resultRows)
       for (const checkScraperName of Object.keys(this.config.scrapers))
-        if (this.config.scrapers[checkScraperName].searchesAllAirlines || this.config.scrapers[checkScraperName].searchesAirlines.some((/** @type {string} */ checkCode) => checkCode === (row.flightNo || "").substr(0, 2)))
-          scrapersAndOrigDest.push(`${checkScraperName}|${row.origin}|${row.destination}`)
+        if ((checkScraperName === "chase" && this.config.checkChase) || checkScraperName !== "chase")
+          if (this.config.scrapers[checkScraperName].searchesAllAirlines || this.config.scrapers[checkScraperName].searchesAirlines.some((/** @type {string} */ checkCode) => checkCode === (row.flightNo || "").substr(0, 2)))
+            scrapersAndOrigDest.push(`${checkScraperName}|${row.origin}|${row.destination}`)
 
     // Some airlines will always get searched depending on if we're considering airports they serve
     // const searchingAirports = [this.config.origin, this.config.destination]
