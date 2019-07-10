@@ -48,7 +48,7 @@ export default class AwardWiz {
       this.gridView = new AwardWizGrid(/** @type {HTMLDivElement} */ (document.querySelector("#resultsGrid")), AwardWiz.onRowClicked)
 
       /** @type {Array<SearchResultRow>} */
-      this.resultRows = []    // the data more aggregated for the grid view
+      this.gridFlights = []    // the data more aggregated for the grid view
       /** @type {Object<string, Array<SearchResult>>} */
       this.scraperResults = {};    // the raw result data from the scrapers
 
@@ -138,36 +138,39 @@ export default class AwardWiz {
   addScraperResultsToGrid(scraperName) {
     // Store and merge the results into the table
     for (const newFlight of this.scraperResults[scraperName]) {
+      for (const className of ["economy", "business", "first"]) {
+        // Wipe mileage info for non-saver fares before joining into grid
+        if (this.config.showOnlySaverFares && newFlight.costs[className].isSaverFare === false) {
+          newFlight.costs[className].miles = null
+          newFlight.costs[className].cash = null
+        }
+      }
 
       // Go over all new rows, if they're already in the grid (as identified by the departure and
       // arrival times being the same), combine them, though display the cheapest mileage fare first
-      let foundRow = false
-      for (const checkResultRow of this.resultRows) {
-        if (checkResultRow.departureDateTime === newFlight.departureDateTime && checkResultRow.arrivalDateTime === newFlight.arrivalDateTime) {
-          foundRow = true
-          checkResultRow.scrapersUsed[scraperName] = newFlight
+      let flightAlreadyInGrid = false
+      for (const gridFlight of this.gridFlights) {
+        if (gridFlight.departureDateTime === newFlight.departureDateTime && gridFlight.arrivalDateTime === newFlight.arrivalDateTime) {
+          flightAlreadyInGrid = true
+          gridFlight.scrapersUsed[scraperName] = newFlight
 
           for (const className of ["economy", "business", "first"]) {
-            // If we're requesting only Saver fares, filter out everything else
-            if (this.config.showOnlySaverFares && newFlight.costs[className].isSaverFare === false)
-              continue
-
             if (newFlight.costs[className].miles !== null) {
               let overwrite = false
-              if (newFlight.costs[className].miles < checkResultRow.costs[className].miles)
+              if (newFlight.costs[className].miles < gridFlight.costs[className].miles)
                 overwrite = true
 
               // This is the first time we add miles into an existing row
-              if (newFlight.costs[className].miles > 0 && checkResultRow.costs[className].miles === null)
+              if (newFlight.costs[className].miles > 0 && gridFlight.costs[className].miles === null)
                 overwrite = true
 
               // If miles are the same on this new one, select it if it's less cash than the existing one
               // or if it actually has a cash amount.
-              if (newFlight.costs[className].miles === checkResultRow.costs[className].miles) {
+              if (newFlight.costs[className].miles === gridFlight.costs[className].miles) {
                 if (newFlight.costs[className].cash !== null) {
-                  if (checkResultRow.costs[className].cash === null) {
+                  if (gridFlight.costs[className].cash === null) {
                     overwrite = true
-                  } else if (newFlight.costs[className].cash < checkResultRow.costs[className].cash) {
+                  } else if (newFlight.costs[className].cash < gridFlight.costs[className].cash) {
                     overwrite = true
                   }
                 }
@@ -175,16 +178,15 @@ export default class AwardWiz {
 
               if (overwrite) {
                 // A better match was found
-                checkResultRow.costs[className].miles = newFlight.costs[className].miles
-                checkResultRow.costs[className].cash = newFlight.costs[className].cash
-                checkResultRow.costs[className].scraper = scraperName
+                gridFlight.costs[className] = JSON.parse(JSON.stringify(newFlight.costs[className]))
+                gridFlight.costs[className].scraper = scraperName
               }
             }
           }
           break
         }
       }
-      if (!foundRow) {
+      if (!flightAlreadyInGrid) {
         /** @type {SearchResultRow} */
         const newRow = {
           scrapersUsed: {[scraperName]: newFlight},
@@ -197,11 +199,11 @@ export default class AwardWiz {
             newRow.costs[className].scraper = scraperName
         }
 
-        this.resultRows.push(newRow)
+        this.gridFlights.push(newRow)
       }
     }
 
-    this.gridView.grid.api.setRowData(this.resultRows)
+    this.gridView.grid.api.setRowData(this.gridFlights)
   }
 
   /** Runs a scraper and adds its results to the grid
@@ -235,7 +237,7 @@ export default class AwardWiz {
     // Convert the airline codes to all the scrapers which support those airlines and do
     // it per origin->destination mapping from ita
     const scrapersAndOrigDest = []
-    for (const row of this.resultRows)
+    for (const row of this.gridFlights)
       for (const checkScraperName of Object.keys(this.config.scrapers))
         if (!this.config.showOnlySaverFares || (this.config.showOnlySaverFares && !(this.config.scrapers[checkScraperName].neverReturnsSaverFares === true)))
           if (this.config.scrapers[checkScraperName].searchesAllAirlines || this.config.scrapers[checkScraperName].searchesAirlines.some((/** @type {string} */ checkCode) => checkCode === (row.flightNo || "").substr(0, 2)))
@@ -272,7 +274,7 @@ export default class AwardWiz {
   async startNewSearch(title, statusElement) {
     // Reset the previous results if any
     statusElement.innerHTML = ""
-    this.resultRows = []
+    this.gridFlights = []
     this.scraperResults = {}
     this.gridView.grid.api.setRowData([])
 
