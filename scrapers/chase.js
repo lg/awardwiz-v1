@@ -32,9 +32,9 @@ exports.scraperMain = async(page, input) => {
       duration: `${leg.duration.hours}h ${leg.duration.minutes}m`,
       aircraft: leg.timeline[0].carrier.plane,
       costs: {
-        economy: {miles: null, cash: null},
-        business: {miles: null, cash: null},
-        first: {miles: null, cash: null}
+        economy: {miles: null, cash: null, isSaverFare: false},
+        business: {miles: null, cash: null, isSaverFare: false},
+        first: {miles: null, cash: null, isSaverFare: false}
       }
     }
 

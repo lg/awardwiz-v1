@@ -13,7 +13,7 @@ export default class AwardWiz {
         awsAccessKey: "", awsSecretAccessKey: "", awsRegionZone: "us-west-1a", awsLambdaRoleArn: "",
         functionName: "awardwiz", proxyUrl: "",
         origin: "", originNearby: true, destination: "", destinationNearby: true, date: "",
-        checkChase: true,
+        showOnlySaverFares: false,
 
         // The scrapers can change a lot, so we maintain the list in a json
         // @ts-ignore because the import isn't working for JSON5
@@ -148,6 +148,10 @@ export default class AwardWiz {
           checkResultRow.scrapersUsed[scraperName] = newFlight
 
           for (const className of ["economy", "business", "first"]) {
+            // If we're requesting only Saver fares, filter out everything else
+            if (this.config.showOnlySaverFares && newFlight.costs[className].isSaverFare === false)
+              continue
+
             if (newFlight.costs[className].miles !== null) {
               let overwrite = false
               if (newFlight.costs[className].miles < checkResultRow.costs[className].miles)
@@ -229,11 +233,11 @@ export default class AwardWiz {
     this.gridView.grid.api.hideOverlay()
 
     // Convert the airline codes to all the scrapers which support those airlines and do
-    // it per origin->destination mapping from ita. Also skip Chase if requested.
+    // it per origin->destination mapping from ita
     const scrapersAndOrigDest = []
     for (const row of this.resultRows)
       for (const checkScraperName of Object.keys(this.config.scrapers))
-        if ((checkScraperName === "chase" && this.config.checkChase) || checkScraperName !== "chase")
+        if (!this.config.showOnlySaverFares || (this.config.showOnlySaverFares && !(this.config.scrapers[checkScraperName].neverReturnsSaverFares === true)))
           if (this.config.scrapers[checkScraperName].searchesAllAirlines || this.config.scrapers[checkScraperName].searchesAirlines.some((/** @type {string} */ checkCode) => checkCode === (row.flightNo || "").substr(0, 2)))
             scrapersAndOrigDest.push(`${checkScraperName}|${row.origin}|${row.destination}`)
 

@@ -61,9 +61,9 @@ const standardizeResults = (unitedTrip) => {
       aircraft: flight.EquipmentDisclosures.EquipmentDescription,
       duration: null,
       costs: {
-        economy: {miles: null, cash: null},
-        business: {miles: null, cash: null},
-        first: {miles: null, cash: null}
+        economy: {miles: null, cash: null, isSaverFare: null},
+        business: {miles: null, cash: null, isSaverFare: null},
+        first: {miles: null, cash: null, isSaverFare: null}
       }
     }
 
@@ -80,6 +80,8 @@ const standardizeResults = (unitedTrip) => {
       const milesRequired = product.Prices[0].Amount
       /** @type {number} */
       const cashRequired = product.TaxAndFees ? product.TaxAndFees.Amount : 0
+      /** @type {boolean} */
+      const isSaverFare = product.AwardType === "Saver"
 
       for (const cabin of ["Economy", "Business", "First"]) {
         if (product.ProductTypeDescription.startsWith(cabin)) {
@@ -87,6 +89,7 @@ const standardizeResults = (unitedTrip) => {
           if (!result.costs[cabinLower].miles || milesRequired < result.costs[cabinLower].miles) {
             result.costs[cabinLower].miles = milesRequired
             result.costs[cabinLower].cash = cashRequired
+            result.costs[cabinLower].isSaverFare = isSaverFare
           }
         }
       }
@@ -94,7 +97,6 @@ const standardizeResults = (unitedTrip) => {
 
     results.push(result)
   }
-
   return results
 }
 

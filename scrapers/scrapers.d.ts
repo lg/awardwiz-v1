@@ -34,6 +34,9 @@ interface SearchResult {
 interface SearchResultMilesAndCash {
   miles: number | null
   cash: number | null
+
+  /** Indicates a fare that should be redeemable by partners. 'null' implies unknown (though usually means yes) */
+  isSaverFare: boolean | null
 }
 
 interface SearchResultMilesAndCashWithScraper extends SearchResultMilesAndCash {

@@ -193,9 +193,9 @@ const getFlightFromRow = async(page, input, rowElement, detailsElement, results)
     airline: (await xPathInnerText(page, ".//div[1]", detailsElement, "airline name and flight number")).split(" flight ")[0],
     flightNo: "??????",
     costs: {
-      economy: {miles: null, cash: parseInt((await xPathInnerText(page, ".//div[1]/button[1]/span[2]", rowElement, "economy cash amount")).replace("$", ""), 10)},
-      business: {miles: null, cash: null},
-      first: {miles: null, cash: null}
+      economy: {miles: null, cash: parseInt((await xPathInnerText(page, ".//div[1]/button[1]/span[2]", rowElement, "economy cash amount")).replace("$", ""), 10), isSaverFare: false},
+      business: {miles: null, cash: null, isSaverFare: false},
+      first: {miles: null, cash: null, isSaverFare: false}
     }
   }
 

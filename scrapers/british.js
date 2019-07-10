@@ -92,9 +92,9 @@ exports.scraperMain = async(page, input) => {
         duration: `${(await innerText(row, "td:nth-of-type(3)")).substr(0, 2)}h ${(await innerText(row, "td:nth-of-type(3)")).substr(2, 2)}m`,
         aircraft: null,     // it's possible to get, but via a navigation
         costs: {
-          economy: {miles: null, cash: null},
-          business: {miles: null, cash: null},
-          first: {miles: null, cash: null}
+          economy: {miles: null, cash: null, isSaverFare: null},
+          business: {miles: null, cash: null, isSaverFare: null},
+          first: {miles: null, cash: null, isSaverFare: null}
         }
       }
 
@@ -113,7 +113,7 @@ exports.scraperMain = async(page, input) => {
         await page.waitFor(1000)  // not sure why this is necessary
 
         const textParts = text.split(" Avios + $")
-        const cashMiles = {miles: parseInt(textParts[0], 10), cash: parseFloat(textParts[1])}
+        const cashMiles = {miles: parseInt(textParts[0], 10), cash: parseFloat(textParts[1]), isSaverFare: true}
 
         const cabinName = await innerText(cabinCol, ".travel-class")
         if (cabinName === "Economy" || cabinName === "Premium Economy") {

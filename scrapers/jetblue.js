@@ -114,9 +114,9 @@ exports.scraperMain = async(page, input) => {
       duration: (await innerText(row, ".colDuration div")).trim(),
       aircraft: (await innerText(row, ".equipType")).replace("Aircraft\n", "").replace("/Mint", "").trim(),
       costs: {
-        economy: {miles: null, cash: null},
-        business: {miles: null, cash: null},
-        first: {miles: null, cash: null}
+        economy: {miles: null, cash: null, isSaverFare: false},
+        business: {miles: null, cash: null, isSaverFare: false},
+        first: {miles: null, cash: null, isSaverFare: false}
       }
     }
 

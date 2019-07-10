@@ -68,6 +68,7 @@
     "complexity": "off",
     "max-params": "off",
     "no-await-in-loop": "off",
+    "prefer-named-capture-group": "off",  // no thx for now
 
     // ts-check
     "lines-around-comment": "off",        // jsdoc needed all over for ts-check

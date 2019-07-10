@@ -11,7 +11,7 @@ interface AwardWizConfig {
   destination: string
   destinationNearby: boolean
   date: string
-  checkChase: boolean
+  showOnlySaverFares: boolean
 
   scrapers: {
     [name: string]: {

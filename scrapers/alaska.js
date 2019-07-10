@@ -71,11 +71,11 @@ exports.scraperMain = async(page, input) => {
     /** @param {string} selector */
     const parseMilesAndCashFromSelector = async selector => {
       if (!(await row.$(selector)))
-        return {miles: null, cash: null}
+        return {miles: null, cash: null, isSaverFare: null}
       const fare = (await row.$eval(selector, el => /** @type {HTMLLabelElement} */ (el).innerText)).match(/(.+)k \+\n\$(.+)\n/u)
       if (!fare)
-        return {miles: null, cash: null}
-      return {miles: Math.floor(parseFloat(fare[1]) * 1000), cash: parseInt(fare[2], 10)}
+        return {miles: null, cash: null, isSaverFare: null}
+      return {miles: Math.floor(parseFloat(fare[1]) * 1000), cash: parseInt(fare[2], 10), isSaverFare: null}
     }
 
     /** @type {SearchResult} */

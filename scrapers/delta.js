@@ -88,9 +88,9 @@ exports.scraperMain = async(page, input) => {
       duration: `${trip.totalTripTime.hour}h ${trip.totalTripTime.minute}m`,
       aircraft: trip.flightSegment[0].flightLeg[0].aircraft.fleetName.trim(),
       costs: {
-        economy: {miles: null, cash: null},
-        business: {miles: null, cash: null},
-        first: {miles: null, cash: null}
+        economy: {miles: null, cash: null, isSaverFare: null},
+        business: {miles: null, cash: null, isSaverFare: null},
+        first: {miles: null, cash: null, isSaverFare: null}
       }
     }
 
@@ -100,10 +100,12 @@ exports.scraperMain = async(page, input) => {
         continue
 
       let classOfService = null
-      if (fare.dominantSegmentBrandId === "FIRST" || fare.dominantSegmentBrandId === "D1") {
+      if (fare.dominantSegmentBrandId === "FIRST" || fare.dominantSegmentBrandId === "D1" || fare.dominantSegmentBrandId === "D1S") {
         classOfService = "first"
-      } else if (fare.dominantSegmentBrandId === "MAIN" || fare.dominantSegmentBrandId === "DCP" || fare.dominantSegmentBrandId === "E") {
+      } else if (fare.dominantSegmentBrandId === "MAIN" || fare.dominantSegmentBrandId === "DCP" || fare.dominantSegmentBrandId === "E" || fare.dominantSegmentBrandId === "DPPS") {
         classOfService = "economy"
+      } else if (fare.dominantSegmentBrandId === "BU") {
+        classOfService = "business"
       } else {
         throw new Error(`Unknown fare type ${fare.dominantSegmentBrandId}`)
       }
@@ -123,6 +125,7 @@ exports.scraperMain = async(page, input) => {
       if (setCosts) {
         result.costs[classOfService].cash = cash
         result.costs[classOfService].miles = miles
+        result.costs[classOfService].isSaverFare = ["X", "I", "O"].indexOf(itinerary.fare[0].miscFlightInfos[0].bookingCode) > -1
       }
     }
 

@@ -65,9 +65,9 @@ exports.scraperMain = async(page, input) => {
       aircraft: result.stopsDetails[0].aircraftEquipmentType,
       duration: `${Math.floor(result.stopsDetails[0].legDuration / 60)}h ${result.stopsDetails[0].legDuration % 60}m`,
       costs: {
-        economy: {miles: null, cash: null},
-        business: {miles: null, cash: null},
-        first: {miles: null, cash: null}
+        economy: {miles: null, cash: null, isSaverFare: false},
+        business: {miles: null, cash: null, isSaverFare: false},
+        first: {miles: null, cash: null, isSaverFare: false}
       }
     }
 

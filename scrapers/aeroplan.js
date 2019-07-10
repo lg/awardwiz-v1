@@ -119,15 +119,15 @@ const standardizeResults = aeroplanTrip => {
       departureDateTime: flight.segment[0].departureDateTime.toString().replace("T", " ").substr(0, 16),
       arrivalDateTime: flight.segment[flight.segment.length - 1].arrivalDateTime.toString().replace("T", " ").substr(0, 16),
       flightNo: `${flight.segment[0].flightNo.substr(0, 2)} ${flight.segment[0].flightNo.substr(2)}`,
-      aircraft: flight.segment[0].aircraft,
+      aircraft: flight.segment[0].aircraft.trim(),
       airline: aeroplanTrip.NormalResults.filters.airlines[flight.segment[0].airline],
       origin: flight.segment[0].origin,
       destination: flight.segment[flight.segment.length - 1].destination,
       duration: null,
       costs: {
-        economy: {miles: null, cash: null},
-        business: {miles: null, cash: null},
-        first: {miles: null, cash: null}
+        economy: {miles: null, cash: null, isSaverFare: null},
+        business: {miles: null, cash: null, isSaverFare: null},
+        first: {miles: null, cash: null, isSaverFare: null}
       }
     }
 
@@ -158,6 +158,7 @@ const standardizeResults = aeroplanTrip => {
     } else {
       result.costs[cabin].miles = miles
     }
+    result.costs[cabin].isSaverFare = result.costs[cabin].miles === chart[cabin]
 
     // Aeroplan requires you hit up individual endpoints for the cash amount. Skip for now.
     result.costs[cabin].cash = null
