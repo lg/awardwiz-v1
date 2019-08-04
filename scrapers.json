@@ -13,7 +13,14 @@
     "searchesAirlines": [
       "oneworld",
       "AA", "BA", "CX", "AY", "IB", "JL", "LA", "MH", "QF", "QR", "RJ", "S7", "UL",
-      "EI", "AL"
+      "EI", "AL", "VY"
+    ],
+    "extraParams": {"username": {}, "password": {}}
+  },
+  "iberia": {
+    "searchesAirlines": [
+      "oneworld",
+      "IB","VY","BA"
     ],
     "extraParams": {"username": {}, "password": {}}
   },
@@ -25,7 +32,7 @@
     "searchesAirlines": [
       "skyteam",
       "DL", "SU", "AR", "AM", "AF", "AZ", "CI", "MU", "CZ", "GA", "G3", "HA", "KE", "KL", "ME", "AE", "FM", "SV", "VN", "RO", "VA", "VS", "MF",
-      "WS"
+      "WS", "UX"
     ]
   },
   "ita": {
@@ -49,7 +56,7 @@
     "searchesAirlines": [
       "star alliance",
       "AC", "JP", "A3", "CA", "AI", "NZ", "NH", "OZ", "OS", "AV", "SN", "CM", "OU", "MS", "ET", "BR", "HO", "LO", "LH", "SK", "ZH", "SQ", "SA", "LX", "TP", "TG", "TK", "UA",
-      "EI", "VW", "EN", "AD", "4B", "9K", "WK", "EW", "HA", "HO", "OA", "3M"
+      "EI", "VW", "EN", "AD", "4B", "9K", "WK", "EW", "HA", "HO", "OA", "3M", "TP"
     ]
   }
 }
