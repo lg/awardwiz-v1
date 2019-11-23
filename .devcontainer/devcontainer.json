@@ -1,0 +1,29 @@
+{
+  "appPort": 8000,
+  "extensions": [
+    "dbaeumer.vscode-eslint",
+    "ritwickdey.liveserver"
+  ],
+  "postCreateCommand": "yarn && cd scrapers && yarn && cd ..",
+  "settings": {
+    "editor.tabSize": 2,
+    "eslint.alwaysShowStatus": true,
+    "eslint.packageManager": "yarn",
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "html"
+    ],
+    "files.associations": {
+      "*.json": "jsonc"
+    },
+    "liveServer.settings.host": "localhost",
+    "liveServer.settings.port": 8000,
+    "liveServer.settings.donotShowInfoMsg": true,
+    "liveServer.settings.ignoreFiles": ["**/*", "*.*", "*"],
+    "liveServer.settings.NoBrowser": true,
+    "liveServer.settings.CustomBrowser": "chrome",
+    "liveServer.settings.useWebExt": true,
+    "liveServer.settings.donotVerifyTags": true
+  }
+}
