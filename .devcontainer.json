@@ -4,7 +4,7 @@
     "dbaeumer.vscode-eslint",
     "ritwickdey.liveserver"
   ],
-  "postCreateCommand": "yarn && cd scrapers && yarn && cd ../.devcontainer && ./install-chrome-remote-desktop.sh",
+  "postCreateCommand": "yarn && cd scrapers && yarn && cd ..",
   "settings": {
     "editor.tabSize": 2,
     "eslint.alwaysShowStatus": true,
