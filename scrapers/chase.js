@@ -21,6 +21,10 @@ exports.scraperMain = async(page, input) => {
   for (const legName of Object.keys(legs)) {
     const leg = legs[legName]
 
+    // Only process non-stops for now
+    if (leg.stops > 0)
+      continue
+
     /** @type {SearchResult} */
     const flight = {
       departureDateTime: leg.departureTime.isoStr.substr(0, 16).replace("T", " "),
