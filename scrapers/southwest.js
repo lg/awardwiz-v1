@@ -4,7 +4,7 @@
  */
 exports.scraperMain = async(page, input) => {
   console.log("Going to search page...")
-  await page.goto("https://www.southwest.com/air/booking/")
+  await page.goto("https://www.southwest.com/air/booking/", {waitUntil: "networkidle0"})
 
   console.log("Selecting one-way...")
   await page.click("input[value='oneway']")
@@ -24,10 +24,10 @@ exports.scraperMain = async(page, input) => {
 
   try {
     console.log("Setting origin...")
-    await fillFromAutocomplete("#originationAirportCode", input.origin, false)
+    await fillFromAutocomplete("#originationAirportCode", input.origin, true)
 
     console.log("Setting destination...")
-    await fillFromAutocomplete("#destinationAirportCode", input.destination, false)
+    await fillFromAutocomplete("#destinationAirportCode", input.destination, true)
   } catch (err) {
     // Airport wasn't found, return empty results
     console.log("Airport wasn't found")
