@@ -15,7 +15,7 @@ exports.scraperMain = async(page, input) => {
 
   // We need to search twice due to how the results are given back for economy vs first
   for (const searchMode of ["economy", "first"]) {
-    console.log("Going to search page...")
+    console.log(`Going to search page for ${searchMode} cabin...`)
     await page.goto("https://www.britishairways.com/travel/redeem/execclub/_gf/en_us")
 
     let result = 0
@@ -44,7 +44,14 @@ exports.scraperMain = async(page, input) => {
       await page.$eval("#departInputDate", (element, argInput) => ((/** @type {HTMLInputElement} */(element)).value = `${argInput.date.substr(5, 2)}/${argInput.date.substr(8, 2)}/${argInput.date.substr(2, 2)}`), input)
     }
 
-    await page.select("#cabin", searchMode === "economy" ? "M" : "F")
+    // Make sure the requested class exists
+    let cabinCode = searchMode === "economy" ? "M" : "F"
+    if (!await page.$(`select[name=CabinCode] option[value=${cabinCode}]`)) {
+      console.log("Class of service not offered, skipping")
+      continue
+    }
+
+    await page.select("#cabin", cabinCode)
     await page.click("#submitBtn")
 
     result = 0
