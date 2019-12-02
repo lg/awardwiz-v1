@@ -5,7 +5,7 @@
 exports.scraperMain = async(page, input) => {
   /** @param {string} selector */
   const waitAndClick = (selector, timeoutMs = 90000) => {
-    return page.waitForSelector(selector, {timeout: timeoutMs}).then(() => {
+    return page.waitForSelector(selector, {timeout: timeoutMs, visible: true}).then(() => {
       return page.click(selector)
     })
   }
@@ -30,6 +30,10 @@ exports.scraperMain = async(page, input) => {
   await page.waitForSelector(".header-login-btn", {timeout: 90000})
 
   console.log("Logging in...")
+
+  // Sometimes they show an ad, remove the div just in case
+  await page.$eval(".floatingAdContainerDiv", el => el.remove())
+
   await waitAndClick(".header-login-btn")
   await page.type(".header-login-form-inner-wrapper #aeroplanNumber", input.username)
   await page.type(".header-login-form-inner-wrapper input[type=password]", input.password)
@@ -57,12 +61,12 @@ exports.scraperMain = async(page, input) => {
     console.log("Setting origin...")
     await waitAndClick("div[data-automation=one-way-from-location]")
     await page.keyboard.type(input.origin)
-    await waitAndClick(`div[data-value=${input.origin}]`, 5000)
+    await waitAndClick(`#city1FromOnewayCodeWrapper div[data-value=${input.origin}]`)
 
     console.log("Setting destination...")
     await waitAndClick("div[data-automation=one-way-to-location]")
     await page.keyboard.type(input.destination)
-    await waitAndClick(`div[data-value=${input.destination}]`, 5000)
+    await waitAndClick(`#city1ToOnewayCodeWrapper div[data-value=${input.destination}]`)
   } catch (err) {
     // Airport wasn't found, return empty results
     console.log("Airport wasn't found")
