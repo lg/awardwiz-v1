@@ -1,5 +1,7 @@
 # AwardWiz
 
+_This repository is deprecated. Though some portions work, see the latest at: https://github.com/lg/awardwiz_
+
 Search for mileage awards on multiple airlines
 
 ![Screenshot](https://raw.githubusercontent.com/lg/awardwiz/master/screenshot.png)
